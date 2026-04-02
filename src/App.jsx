@@ -24,7 +24,7 @@ export default function App() {
   return (
     <div className="bg-white min-h-screen w-full md:overflow-hidden relative">
       {/* Header */}
-      <div className="px-[4%] pt-[34px] pb-0">
+      <div className="px-[4%] pt-[34px] pb-0 relative">
         {/* Mobile sign in — top right, static */}
         {!user && (
           <div className="md:hidden flex justify-end mb-2">
@@ -37,47 +37,46 @@ export default function App() {
             </button>
           </div>
         )}
-        <div className="flex items-start justify-between">
-          <h1
-            className="font-['Inter'] font-black text-black leading-none
-              text-[56px] sm:text-[80px] md:text-[110px] lg:text-[134px]
-              tracking-tight m-0"
-          >
-            THERE BE FOOD
-          </h1>
-          {/* Desktop header actions */}
-          <div className="hidden md:flex items-center gap-3 shrink-0 mt-8">
-            {user ? (
-              <button
-                onClick={signOut}
-                className="flex items-center h-[44px] px-4 border border-[#1f1f1f] rounded-full
-                  text-[#1c1b1f] text-base cursor-pointer bg-transparent
-                  hover:bg-gray-50 transition-colors"
-              >
-                Sign out
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsAuthOpen(true)}
-                className="text-base text-text-primary underline underline-offset-2
-                  bg-transparent border-none cursor-pointer hover:text-black transition-colors"
-              >
-                Sign in
-              </button>
-            )}
+
+        {/* Desktop: Sign in + Share Food stacked top-right */}
+        <div className="hidden md:flex flex-col items-end gap-3 absolute right-[4%] top-[34px] z-10">
+          {user ? (
             <button
-              onClick={handleShareClick}
-              className="flex items-center gap-2.5 h-[44px] px-4 bg-black rounded-full
-                text-white text-xl cursor-pointer border-none
-                hover:bg-gray-800 transition-colors"
+              onClick={signOut}
+              className="text-[16px] text-black underline underline-offset-2
+                bg-transparent border-none cursor-pointer hover:opacity-70 transition-opacity"
             >
-              Share Food
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
+              Sign out
             </button>
-          </div>
+          ) : (
+            <button
+              onClick={() => setIsAuthOpen(true)}
+              className="text-[16px] text-black underline underline-offset-2
+                bg-transparent border-none cursor-pointer hover:opacity-70 transition-opacity"
+            >
+              Sign in
+            </button>
+          )}
+          <button
+            onClick={handleShareClick}
+            className="flex items-center gap-2.5 h-[44px] px-4 bg-black rounded-full
+              text-white text-xl cursor-pointer border-none
+              hover:bg-gray-800 transition-colors"
+          >
+            Share Food
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
         </div>
+
+        <h1
+          className="font-['Inter'] font-black text-black leading-none
+            text-[56px] sm:text-[80px] md:text-[110px] lg:text-[134px]
+            tracking-tight m-0"
+        >
+          THERE BE FOOD
+        </h1>
       </div>
 
       {/* Food cards */}
