@@ -5,7 +5,7 @@ export default function InfiniteScroll({ foods }) {
   const scrollRef = useRef(null)
   const scrollPos = useRef(0)
 
-  // Duplicate cards for seamless wrapping
+  // Duplicate cards for seamless horizontal wrapping (desktop only)
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
 
   const gap = 56
@@ -17,7 +17,6 @@ export default function InfiniteScroll({ foods }) {
     if (!el || singleSetWidth === 0) return
 
     scrollPos.current += delta
-    // Wrap around seamlessly
     if (scrollPos.current >= singleSetWidth) {
       scrollPos.current -= singleSetWidth
     } else if (scrollPos.current < 0) {
@@ -27,22 +26,23 @@ export default function InfiniteScroll({ foods }) {
   }, [singleSetWidth])
 
   useEffect(() => {
+    // Only hijack wheel on desktop (md breakpoint = 768px)
+    const mq = window.matchMedia('(min-width: 768px)')
+    if (!mq.matches) return
+
     const handleWheel = (e) => {
-      // Prevent default vertical scroll — drive horizontal movement instead
       e.preventDefault()
-      // Use both deltaY and deltaX so trackpad swiping works too
       const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
       updatePosition(delta)
     }
 
-    // Listen on the whole window so scrolling anywhere on the page works
     window.addEventListener('wheel', handleWheel, { passive: false })
     return () => window.removeEventListener('wheel', handleWheel)
   }, [updatePosition])
 
   if (foods.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[523px] text-neutral-500">
+      <div className="flex items-center justify-center h-[400px] md:h-[523px] text-neutral-500">
         <div className="text-center">
           <p className="text-xl mb-2">No food yet!</p>
           <p className="text-sm">Share something delicious to get started.</p>
@@ -52,15 +52,25 @@ export default function InfiniteScroll({ foods }) {
   }
 
   return (
-    <div className="w-full overflow-hidden">
-      <div
-        ref={scrollRef}
-        className="flex gap-[56px] items-center pl-[56px] will-change-transform"
-      >
-        {displayFoods.map((food, index) => (
-          <FoodCard key={`${food.id}-${index}`} food={food} />
+    <>
+      {/* Mobile: vertical stack, normal scroll */}
+      <div className="flex flex-col gap-5 px-4 pb-28 md:hidden">
+        {foods.map((food) => (
+          <FoodCard key={food.id} food={food} mobile />
         ))}
       </div>
-    </div>
+
+      {/* Desktop: horizontal infinite scroll driven by wheel */}
+      <div className="hidden md:block w-full overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="flex gap-[56px] items-center pl-[56px] will-change-transform"
+        >
+          {displayFoods.map((food, index) => (
+            <FoodCard key={`${food.id}-${index}`} food={food} />
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
