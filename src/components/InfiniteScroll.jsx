@@ -1,40 +1,44 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import FoodCard from './FoodCard'
 
 export default function InfiniteScroll({ foods }) {
   const scrollRef = useRef(null)
-  const [isPaused, setIsPaused] = useState(false)
+  const scrollPos = useRef(0)
 
-  // We need enough cards to fill the viewport and then duplicate them
-  // for the seamless infinite scroll effect
+  // Duplicate cards for seamless wrapping
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
 
-  useEffect(() => {
+  const gap = 56
+  const cardWidth = 392
+  const singleSetWidth = foods.length * (cardWidth + gap)
+
+  const updatePosition = useCallback((delta) => {
     const el = scrollRef.current
-    if (!el || foods.length === 0) return
+    if (!el || singleSetWidth === 0) return
 
-    let animationId
-    let scrollPos = 0
-    // Width of one set of cards
-    const gap = 56
-    const cardWidth = 392
-    const singleSetWidth = foods.length * (cardWidth + gap)
+    scrollPos.current += delta
+    // Wrap around seamlessly
+    if (scrollPos.current >= singleSetWidth) {
+      scrollPos.current -= singleSetWidth
+    } else if (scrollPos.current < 0) {
+      scrollPos.current += singleSetWidth
+    }
+    el.style.transform = `translateX(-${scrollPos.current}px)`
+  }, [singleSetWidth])
 
-    const animate = () => {
-      if (!isPaused) {
-        scrollPos += 0.5
-        // Reset when we've scrolled one full set
-        if (scrollPos >= singleSetWidth) {
-          scrollPos -= singleSetWidth
-        }
-        el.style.transform = `translateX(-${scrollPos}px)`
-      }
-      animationId = requestAnimationFrame(animate)
+  useEffect(() => {
+    const handleWheel = (e) => {
+      // Prevent default vertical scroll — drive horizontal movement instead
+      e.preventDefault()
+      // Use both deltaY and deltaX so trackpad swiping works too
+      const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+      updatePosition(delta)
     }
 
-    animationId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(animationId)
-  }, [foods, isPaused])
+    // Listen on the whole window so scrolling anywhere on the page works
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    return () => window.removeEventListener('wheel', handleWheel)
+  }, [updatePosition])
 
   if (foods.length === 0) {
     return (
@@ -52,8 +56,6 @@ export default function InfiniteScroll({ foods }) {
       <div
         ref={scrollRef}
         className="flex gap-[56px] items-center pl-[56px] will-change-transform"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
       >
         {displayFoods.map((food, index) => (
           <FoodCard key={`${food.id}-${index}`} food={food} />
