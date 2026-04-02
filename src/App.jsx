@@ -3,6 +3,7 @@ import InfiniteScroll from './components/InfiniteScroll'
 import ShareFoodModal from './components/ShareFoodModal'
 import AuthModal from './components/AuthModal'
 import useFoodPosts from './hooks/useFoodPosts'
+import useScrollColor from './hooks/useScrollColor'
 import { useAuth } from './lib/AuthContext'
 import { isSupabaseConfigured } from './lib/supabase'
 
@@ -11,6 +12,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { foods, loading, addFood } = useFoodPosts()
+  const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
 
   // Lock body scroll when mobile menu is open
@@ -40,7 +42,10 @@ export default function App() {
   }
 
   return (
-    <div className="bg-white min-h-screen w-full md:overflow-hidden relative">
+    <div
+      className="min-h-screen w-full md:overflow-hidden relative transition-colors duration-300 ease-out"
+      style={{ backgroundColor: bgColor }}
+    >
       {/* Header */}
       <div className="px-[4%] pt-[34px] pb-0 relative">
         {/* Mobile: hamburger menu button — top right */}
@@ -152,7 +157,7 @@ export default function App() {
             <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <InfiniteScroll foods={foods} />
+          <InfiniteScroll foods={foods} onScrollProgress={onScrollProgress} />
         )}
       </div>
 

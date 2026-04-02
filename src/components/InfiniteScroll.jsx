@@ -1,9 +1,11 @@
 import { useRef, useEffect, useCallback } from 'react'
 import FoodCard from './FoodCard'
 
-export default function InfiniteScroll({ foods }) {
+export default function InfiniteScroll({ foods, onScrollProgress }) {
   const scrollRef = useRef(null)
+  const mobileRef = useRef(null)
   const scrollPos = useRef(0)
+  const totalScrolled = useRef(0)
 
   // Duplicate cards for seamless horizontal wrapping (desktop only)
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
@@ -12,18 +14,29 @@ export default function InfiniteScroll({ foods }) {
   const cardWidth = 392
   const singleSetWidth = foods.length * (cardWidth + gap)
 
+  // One full color cycle = scrolling through all cards once
+  const colorCycleWidth = singleSetWidth || 1
+
   const updatePosition = useCallback((delta) => {
     const el = scrollRef.current
     if (!el || singleSetWidth === 0) return
 
     scrollPos.current += delta
+    totalScrolled.current += Math.abs(delta)
+
     if (scrollPos.current >= singleSetWidth) {
       scrollPos.current -= singleSetWidth
     } else if (scrollPos.current < 0) {
       scrollPos.current += singleSetWidth
     }
     el.style.transform = `translateX(-${scrollPos.current}px)`
-  }, [singleSetWidth])
+
+    // Report progress for background color
+    if (onScrollProgress) {
+      const progress = (totalScrolled.current / colorCycleWidth) % 1
+      onScrollProgress(progress)
+    }
+  }, [singleSetWidth, colorCycleWidth, onScrollProgress])
 
   useEffect(() => {
     // Only hijack wheel on desktop (md breakpoint = 768px)
@@ -39,6 +52,23 @@ export default function InfiniteScroll({ foods }) {
     window.addEventListener('wheel', handleWheel, { passive: false })
     return () => window.removeEventListener('wheel', handleWheel)
   }, [updatePosition])
+
+  // Mobile: track vertical scroll for color changes
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    if (mq.matches || !onScrollProgress) return
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      if (docHeight > 0) {
+        onScrollProgress(scrollY / docHeight)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [onScrollProgress])
 
   if (foods.length === 0) {
     return (
