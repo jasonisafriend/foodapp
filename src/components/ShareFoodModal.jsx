@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import compressImage from '../lib/compressImage'
 
 export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [name, setName] = useState('')
@@ -10,13 +11,22 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef(null)
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      setPhoto(file)
-      const reader = new FileReader()
-      reader.onloadend = () => setPhotoPreview(reader.result)
-      reader.readAsDataURL(file)
+      try {
+        const compressed = await compressImage(file)
+        setPhoto(compressed)
+        const reader = new FileReader()
+        reader.onloadend = () => setPhotoPreview(reader.result)
+        reader.readAsDataURL(compressed)
+      } catch (err) {
+        console.error('Image compression failed, using original:', err)
+        setPhoto(file)
+        const reader = new FileReader()
+        reader.onloadend = () => setPhotoPreview(reader.result)
+        reader.readAsDataURL(file)
+      }
     }
   }
 
