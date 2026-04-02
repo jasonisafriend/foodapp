@@ -56,7 +56,7 @@ CREATE POLICY "Anyone can read food posts"
 
 CREATE POLICY "Authenticated users can insert food posts"
   ON food_posts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Users can update their own food posts"
   ON food_posts FOR UPDATE

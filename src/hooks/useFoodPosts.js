@@ -67,9 +67,9 @@ export default function useFoodPosts() {
       image_url = urlData.publicUrl
     }
 
-    // Get current user id
-    const { data: { user } } = await supabase.auth.getUser()
-    const user_id = user?.id || null
+    // Get current user id — session is more reliable than getUser() here
+    const { data: { session } } = await supabase.auth.getSession()
+    const user_id = session?.user?.id || null
 
     // Insert the food post
     const { data, error } = await supabase
