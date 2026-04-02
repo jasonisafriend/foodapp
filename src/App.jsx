@@ -25,6 +25,18 @@ export default function App() {
     <div className="bg-white min-h-screen w-full md:overflow-hidden relative">
       {/* Header */}
       <div className="px-[4%] pt-[34px] pb-0">
+        {/* Mobile sign in — top right, static */}
+        {!user && (
+          <div className="md:hidden flex justify-end mb-2">
+            <button
+              onClick={() => setIsAuthOpen(true)}
+              className="text-[14px] text-text-primary underline underline-offset-2
+                bg-transparent border-none cursor-pointer"
+            >
+              Sign in
+            </button>
+          </div>
+        )}
         <div className="flex items-start justify-between">
           <h1
             className="font-['Inter'] font-black text-black leading-none
@@ -35,7 +47,7 @@ export default function App() {
           </h1>
           {/* Desktop header actions */}
           <div className="hidden md:flex items-center gap-3 shrink-0 mt-8">
-            {user && (
+            {user ? (
               <button
                 onClick={signOut}
                 className="flex items-center h-[44px] px-4 border border-[#1f1f1f] rounded-full
@@ -43,6 +55,14 @@ export default function App() {
                   hover:bg-gray-50 transition-colors"
               >
                 Sign out
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="text-base text-text-primary underline underline-offset-2
+                  bg-transparent border-none cursor-pointer hover:text-black transition-colors"
+              >
+                Sign in
               </button>
             )}
             <button
