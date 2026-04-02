@@ -86,6 +86,22 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
 
   if (!isOpen) return null
 
+  const shareButton = (
+    <button
+      onClick={handleSubmit}
+      disabled={!name.trim() || isSubmitting}
+      className="flex items-center gap-2.5 h-[44px] px-4 bg-black rounded-full
+        text-white text-xl cursor-pointer border-none
+        hover:bg-gray-800 transition-colors
+        disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isSubmitting ? 'Sharing...' : 'Share'}
+      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+      </svg>
+    </button>
+  )
+
   return (
     <>
       {/* Backdrop — only visible on desktop behind the centered modal */}
@@ -99,6 +115,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
         <div
           className="bg-white w-full h-full md:h-auto md:max-w-[900px] md:max-h-[90vh]
             md:rounded-[20px] overflow-y-auto overscroll-contain
+            flex flex-col md:block
             animate-[slideUp_0.3s_ease-out]"
           style={{ animationName: 'slideUp' }}
         >
@@ -117,19 +134,10 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
               Back
             </button>
 
-            <button
-              onClick={handleSubmit}
-              disabled={!name.trim() || isSubmitting}
-              className="flex items-center gap-2.5 h-[44px] px-4 bg-black rounded-full
-                text-white text-xl cursor-pointer border-none
-                hover:bg-gray-800 transition-colors
-                disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Sharing...' : 'Share'}
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-              </svg>
-            </button>
+            {/* Share button in header — desktop only */}
+            <div className="hidden md:block">
+              {shareButton}
+            </div>
           </div>
 
           {/* Error message */}
@@ -140,8 +148,8 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
           )}
 
           {/* Content */}
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12 p-6 md:px-10 md:pb-10
-            pb-[env(safe-area-inset-bottom,20px)]">
+          <div className="flex-1 md:flex-none flex flex-col md:flex-row gap-8 md:gap-12 p-6 md:px-10 md:pb-10
+            pb-4">
             {/* Photo upload */}
             <div
               className="flex flex-col items-center justify-center bg-white border-0
@@ -209,7 +217,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   }}
                   placeholder="Crispy crust, gooey mozzarella, fresh basil, and perfect sauce. 10/10"
                   className="w-full h-[100px] p-4 border-[1.5px] border-dashed border-brand-100
-                    rounded-lg text-sm text-text-primary placeholder:text-neutral-500
+                    rounded-lg text-[16px] text-text-primary placeholder:text-neutral-500
                     resize-none outline-none bg-white font-['Inter']"
                 />
               </div>
@@ -228,7 +236,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="Search for a place"
-                    className="flex-1 text-sm text-text-primary placeholder:text-neutral-500
+                    className="flex-1 text-[16px] text-text-primary placeholder:text-neutral-500
                       border-none outline-none bg-transparent font-['Inter']"
                   />
                 </div>
@@ -261,7 +269,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                       value={mapsUrl}
                       onChange={(e) => setMapsUrl(e.target.value)}
                       placeholder="Paste Google Maps share link"
-                      className="flex-1 text-sm text-text-primary placeholder:text-neutral-500
+                      className="flex-1 text-[16px] text-text-primary placeholder:text-neutral-500
                         border-none outline-none bg-transparent font-['Inter']"
                     />
                   </div>
@@ -282,13 +290,30 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="5"
-                    className="flex-1 text-sm text-text-primary placeholder:text-neutral-500
+                    className="flex-1 text-[16px] text-text-primary placeholder:text-neutral-500
                       border-none outline-none bg-transparent font-['Inter']
                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Share button at bottom — mobile only */}
+          <div className="md:hidden sticky bottom-0 bg-white border-t border-gray-100 p-4
+            pb-[env(safe-area-inset-bottom,16px)]">
+            <button
+              onClick={handleSubmit}
+              disabled={!name.trim() || isSubmitting}
+              className="w-full flex items-center justify-center gap-2.5 h-[52px] bg-black rounded-full
+                text-white text-xl cursor-pointer border-none
+                disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Sharing...' : 'Share'}
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
