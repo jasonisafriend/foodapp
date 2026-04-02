@@ -2,20 +2,24 @@ import { useState } from 'react'
 import { useAuth } from '../lib/AuthContext'
 
 export default function AuthModal({ onClose }) {
-  const { signInWithEmail, verifyEmailOtp } = useAuth()
+  const { signUp, signIn } = useAuth()
   const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [step, setStep] = useState('email') // 'email' | 'otp'
+  const [password, setPassword] = useState('')
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSendCode = async () => {
-    if (!email.trim()) return
+  const handleSubmit = async () => {
+    if (!email.trim() || !password) return
     setError(null)
     setLoading(true)
     try {
-      await signInWithEmail(email.trim())
-      setStep('otp')
+      if (mode === 'signup') {
+        await signUp(email.trim(), password)
+      } else {
+        await signIn(email.trim(), password)
+      }
+      onClose()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -23,18 +27,9 @@ export default function AuthModal({ onClose }) {
     }
   }
 
-  const handleVerify = async () => {
-    if (!otp.trim()) return
+  const toggleMode = () => {
+    setMode(mode === 'signin' ? 'signup' : 'signin')
     setError(null)
-    setLoading(true)
-    try {
-      await verifyEmailOtp(email.trim(), otp.trim())
-      onClose()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
   }
 
   return (
@@ -51,7 +46,7 @@ export default function AuthModal({ onClose }) {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-['Inter'] font-black text-black text-2xl">
-              {step === 'email' ? 'Sign in to share' : 'Check your email'}
+              {mode === 'signin' ? 'Sign in' : 'Create account'}
             </h2>
             <button
               onClick={onClose}
@@ -64,73 +59,51 @@ export default function AuthModal({ onClose }) {
             </button>
           </div>
 
-          {step === 'email' ? (
-            <>
-              <p className="text-sm text-neutral-500 mb-4">
-                Enter your email and we'll send you a one-time code.
-              </p>
-              <div className="flex flex-col gap-4">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@email.com"
-                  className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
-                    rounded-lg text-base text-text-primary placeholder:text-neutral-500
-                    outline-none bg-white font-['Inter']"
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendCode()}
-                />
-                <button
-                  onClick={handleSendCode}
-                  disabled={!email.trim() || loading}
-                  className="w-full h-[48px] bg-black rounded-full text-white text-base
-                    font-medium cursor-pointer border-none
-                    hover:bg-gray-800 transition-colors
-                    disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Sending...' : 'Send code'}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-neutral-500 mb-4">
-                We sent a code to <span className="text-text-primary font-medium">{email}</span>
-              </p>
-              <div className="flex flex-col gap-4">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
-                    rounded-lg text-base text-text-primary placeholder:text-neutral-500
-                    outline-none bg-white font-['Inter'] tracking-[0.3em] text-center"
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
-                />
-                <button
-                  onClick={handleVerify}
-                  disabled={!otp.trim() || loading}
-                  className="w-full h-[48px] bg-black rounded-full text-white text-base
-                    font-medium cursor-pointer border-none
-                    hover:bg-gray-800 transition-colors
-                    disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Verifying...' : 'Verify'}
-                </button>
-                <button
-                  onClick={() => { setStep('email'); setOtp(''); setError(null) }}
-                  className="text-sm text-neutral-500 underline bg-transparent border-none
-                    cursor-pointer hover:text-text-primary transition-colors"
-                >
-                  Use a different email
-                </button>
-              </div>
-            </>
-          )}
+          <div className="flex flex-col gap-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@email.com"
+              className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
+                rounded-lg text-base text-text-primary placeholder:text-neutral-500
+                outline-none bg-white font-['Inter']"
+              autoFocus
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
+                rounded-lg text-base text-text-primary placeholder:text-neutral-500
+                outline-none bg-white font-['Inter']"
+              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={!email.trim() || !password || loading}
+              className="w-full h-[48px] bg-black rounded-full text-white text-base
+                font-medium cursor-pointer border-none
+                hover:bg-gray-800 transition-colors
+                disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {loading
+                ? (mode === 'signin' ? 'Signing in...' : 'Creating account...')
+                : (mode === 'signin' ? 'Sign in' : 'Sign up')
+              }
+            </button>
+            <button
+              onClick={toggleMode}
+              className="text-sm text-neutral-500 bg-transparent border-none
+                cursor-pointer hover:text-text-primary transition-colors"
+            >
+              {mode === 'signin'
+                ? "Don't have an account? Sign up"
+                : 'Already have an account? Sign in'
+              }
+            </button>
+          </div>
 
           {error && (
             <p className="mt-4 text-sm text-red-500">{error}</p>

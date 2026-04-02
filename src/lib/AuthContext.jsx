@@ -4,9 +4,8 @@ import { supabase, isSupabaseConfigured } from './supabase'
 const AuthContext = createContext({
   user: null,
   loading: true,
-  signInWithEmail: async () => {},
-  verifyEmailOtp: async () => {},
-  signInWithProvider: async () => {},
+  signUp: async () => {},
+  signIn: async () => {},
   signOut: async () => {},
 })
 
@@ -34,34 +33,20 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Email magic link / OTP
-  const signInWithEmail = async (email) => {
+  // Email + password sign up
+  const signUp = async (email, password) => {
     if (!isSupabaseConfigured()) throw new Error('Supabase not configured')
-    const { error } = await supabase.auth.signInWithOtp({ email })
-    if (error) throw error
-  }
-
-  const verifyEmailOtp = async (email, token) => {
-    if (!isSupabaseConfigured()) throw new Error('Supabase not configured')
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    })
+    const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
     return data
   }
 
-  // OAuth (Google, Apple, etc.)
-  const signInWithProvider = async (provider) => {
+  // Email + password sign in
+  const signIn = async (email, password) => {
     if (!isSupabaseConfigured()) throw new Error('Supabase not configured')
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: window.location.origin,
-      },
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    return data
   }
 
   const signOut = async () => {
@@ -72,7 +57,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, signInWithEmail, verifyEmailOtp, signInWithProvider, signOut,
+      user, loading, signUp, signIn, signOut,
     }}>
       {children}
     </AuthContext.Provider>
