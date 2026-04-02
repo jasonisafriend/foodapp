@@ -58,27 +58,36 @@ export default function useFoodPosts() {
         .from('food-photos')
         .upload(fileName, photo)
 
-      if (uploadError) throw uploadError
-
-      const { data: urlData } = supabase.storage
-        .from('food-photos')
-        .getPublicUrl(fileName)
-
-      image_url = urlData.publicUrl
+      if (uploadError) {
+        console.error('Photo upload failed:', uploadError)
+        // Continue without image rather than blocking the whole post
+      } else {
+        const { data: urlData } = supabase.storage
+          .from('food-photos')
+          .getPublicUrl(fileName)
+        image_url = urlData.publicUrl
+      }
     }
 
-    // Get current user id — session is more reliable than getUser() here
+    // Get current user id
     const { data: { session } } = await supabase.auth.getSession()
     const user_id = session?.user?.id || null
+    console.log('Inserting food post with user_id:', user_id)
 
     // Insert the food post
+    const insertPayload = { name, description, location, price, image_url, maps_url: mapsUrl || null, user_id }
+    console.log('Insert payload:', insertPayload)
+
     const { data, error } = await supabase
       .from('food_posts')
-      .insert([{ name, description, location, price, image_url, maps_url: mapsUrl || null, user_id }])
+      .insert([insertPayload])
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Insert error:', error)
+      throw error
+    }
 
     setFoods(prev => [data, ...prev])
     return data
