@@ -32,6 +32,16 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const fileInputRef = useRef(null)
+  const nameRef = useRef(null)
+
+  // Auto-resize the name textarea to fit content
+  useEffect(() => {
+    const el = nameRef.current
+    if (el) {
+      el.style.height = 'auto'
+      el.style.height = el.scrollHeight + 'px'
+    }
+  }, [name])
 
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0]
@@ -188,18 +198,26 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
             <div className="flex flex-col gap-8 md:gap-12 flex-1 min-w-0">
               {/* What is it? */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm text-text-primary tracking-wide">
-                  WHAT IS IT?
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Food"
-                  className="font-['Playfair_Display'] italic font-medium text-[28px] md:text-[32px] leading-[36px] md:leading-[40px]
-                    text-text-primary placeholder:text-neutral-500
-                    border-none outline-none bg-transparent pb-2 md:pb-4 pl-3.5"
-                />
+                <div className="flex justify-between items-center">
+                  <label className="text-sm text-text-primary tracking-wide">
+                    WHAT IS IT?
+                  </label>
+                  <span className="text-sm text-black">{name.length}/50</span>
+                </div>
+                <div className="p-4 border-[1.5px] border-dashed border-brand-100 rounded-lg bg-white">
+                  <textarea
+                    ref={nameRef}
+                    value={name}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 50) setName(e.target.value)
+                    }}
+                    placeholder="Food"
+                    rows={1}
+                    className="w-full font-['Playfair_Display'] italic font-medium text-[28px] md:text-[32px] leading-[36px] md:leading-[40px]
+                      text-text-primary placeholder:text-neutral-500
+                      border-none outline-none bg-transparent resize-none overflow-hidden"
+                  />
+                </div>
               </div>
 
               {/* Description */}
