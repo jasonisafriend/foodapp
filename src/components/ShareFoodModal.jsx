@@ -1,7 +1,14 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import compressImage from '../lib/compressImage'
 
 export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = '' }
+    }
+  }, [isOpen])
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
@@ -73,9 +80,10 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+      <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center">
         <div
-          className="bg-white w-full max-w-[900px] rounded-t-[20px] md:rounded-[20px] max-h-[90vh] overflow-y-auto
+          className="bg-white w-full max-w-none md:max-w-[900px] rounded-none md:rounded-[20px]
+            overflow-y-auto md:max-h-[90vh]
             animate-[slideUp_0.3s_ease-out]"
           style={{
             animationName: 'slideUp',
