@@ -2,13 +2,25 @@ import { useState, useRef, useEffect } from 'react'
 import compressImage from '../lib/compressImage'
 
 export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
-  // Lock body scroll when modal is open
+  // Lock body scroll on iOS — position:fixed is the only reliable method
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-      return () => { document.body.style.overflow = '' }
+    if (!isOpen) return
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflow = ''
+      window.scrollTo(0, scrollY)
     }
   }, [isOpen])
+
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
@@ -73,24 +85,23 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — only visible on desktop behind the centered modal */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+        className="hidden md:block fixed inset-0 bg-black/50 z-40 transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center">
+      {/* Modal — full-screen on mobile, centered overlay on desktop */}
+      <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
         <div
-          className="bg-white w-full max-w-none md:max-w-[900px] rounded-none md:rounded-[20px]
-            overflow-y-auto md:max-h-[90vh]
+          className="bg-white w-full h-full md:h-auto md:max-w-[900px] md:max-h-[90vh]
+            md:rounded-[20px] overflow-y-auto overscroll-contain
             animate-[slideUp_0.3s_ease-out]"
-          style={{
-            animationName: 'slideUp',
-          }}
+          style={{ animationName: 'slideUp' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 md:px-10 md:pt-8">
+          <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 md:px-10 md:pt-8
+            border-b border-gray-100 md:border-none">
             <button
               onClick={onClose}
               className="flex items-center gap-2.5 h-[44px] px-4 border border-[#1f1f1f] rounded-full
@@ -119,11 +130,12 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
           </div>
 
           {/* Content */}
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12 p-6 md:px-10 md:pb-10">
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12 p-6 md:px-10 md:pb-10
+            pb-[env(safe-area-inset-bottom,20px)]">
             {/* Photo upload */}
             <div
               className="flex flex-col items-center justify-center bg-white border-0
-                rounded-[20px] w-full md:w-[392px] h-[300px] md:h-[523px] shrink-0 cursor-pointer
+                rounded-[20px] w-full md:w-[392px] h-[240px] md:h-[523px] shrink-0 cursor-pointer
                 shadow-[0_2px_20px_rgba(0,0,0,0.08)]
                 hover:shadow-[0_4px_30px_rgba(0,0,0,0.12)] transition-shadow"
               onClick={() => fileInputRef.current?.click()}
@@ -155,7 +167,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             {/* Form */}
-            <div className="flex flex-col gap-12 flex-1 min-w-0">
+            <div className="flex flex-col gap-8 md:gap-12 flex-1 min-w-0">
               {/* What is it? */}
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-text-primary tracking-wide">
@@ -166,9 +178,9 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Food"
-                  className="font-['Playfair_Display'] italic font-medium text-[32px] leading-[40px]
+                  className="font-['Playfair_Display'] italic font-medium text-[28px] md:text-[32px] leading-[36px] md:leading-[40px]
                     text-text-primary placeholder:text-neutral-500
-                    border-none outline-none bg-transparent pb-4 pl-3.5"
+                    border-none outline-none bg-transparent pb-2 md:pb-4 pl-3.5"
                 />
               </div>
 
@@ -218,7 +230,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   onClick={() => setShowMapsField(true)}
                   className="flex items-center gap-1.5 text-sm text-neutral-400
                     bg-transparent border-none cursor-pointer hover:text-neutral-600
-                    transition-colors p-0 -mt-8"
+                    transition-colors p-0 -mt-4"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -226,7 +238,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   Add Google Maps link
                 </button>
               ) : (
-                <div className="flex flex-col gap-2 -mt-8">
+                <div className="flex flex-col gap-2 -mt-4">
                   <label className="text-sm text-text-primary tracking-wide">
                     GOOGLE MAPS LINK <span className="text-neutral-400 font-normal">(optional)</span>
                   </label>

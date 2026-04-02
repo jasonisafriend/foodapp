@@ -4,10 +4,22 @@ import { useAuth } from '../lib/AuthContext'
 export default function AuthModal({ onClose }) {
   const { signUp, signIn } = useAuth()
 
-  // Lock body scroll when modal is open
+  // Lock body scroll — position:fixed is the only reliable method on iOS
   useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflow = ''
+      window.scrollTo(0, scrollY)
+    }
   }, [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
