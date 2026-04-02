@@ -30,6 +30,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState(null)
   const fileInputRef = useRef(null)
 
   const handlePhotoChange = async (e) => {
@@ -53,6 +54,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
 
   const handleSubmit = async () => {
     if (!name.trim()) return
+    setError(null)
     setIsSubmitting(true)
     try {
       await onSubmit({
@@ -76,6 +78,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
       onClose()
     } catch (err) {
       console.error('Failed to share food:', err)
+      setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -128,6 +131,13 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
               </svg>
             </button>
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mx-4 md:mx-10 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
           {/* Content */}
           <div className="flex flex-col md:flex-row gap-8 md:gap-12 p-6 md:px-10 md:pb-10
