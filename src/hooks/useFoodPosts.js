@@ -8,7 +8,6 @@ export default function useFoodPosts() {
 
   const fetchFoods = useCallback(async () => {
     if (!isSupabaseConfigured()) {
-      // Use mock data when Supabase isn't configured
       setFoods(mockFoodPosts)
       setLoading(false)
       return
@@ -21,10 +20,10 @@ export default function useFoodPosts() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setFoods(data || [])
+      // Real posts first, then placeholder cards to fill the feed
+      setFoods([...(data || []), ...mockFoodPosts])
     } catch (err) {
       console.error('Error fetching food posts:', err)
-      // Fall back to mock data on error
       setFoods(mockFoodPosts)
     } finally {
       setLoading(false)
