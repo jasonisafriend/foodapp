@@ -33,7 +33,7 @@ export const mockFoodPosts = [
     description: 'Buttery, flaky, golden perfection. Paired with a cappuccino.',
     location: 'Du Pain et des Idées, Paris',
     price: 4,
-    image_url: 'https://images.unsplash.com/photo-1555507036-ab1f4038024a?w=600&h=800&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1530610476181-d83430b64dcd?w=600&h=800&fit=crop',
     created_at: new Date().toISOString(),
   },
   {
