@@ -69,12 +69,8 @@ export default function useFoodPosts() {
       }
     }
 
-    // Get current user id
-    const { data: { session } } = await supabase.auth.getSession()
-    const user_id = session?.user?.id || null
-
     // Insert the food post
-    const insertPayload = { name, description, location, price, image_url, maps_url: mapsUrl || null, user_id }
+    const insertPayload = { name, description, location, price, image_url, maps_url: mapsUrl || null }
 
     const { data, error } = await supabase
       .from('food_posts')
