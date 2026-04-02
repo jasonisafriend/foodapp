@@ -67,10 +67,14 @@ export default function useFoodPosts() {
       image_url = urlData.publicUrl
     }
 
+    // Get current user id
+    const { data: { user } } = await supabase.auth.getUser()
+    const user_id = user?.id || null
+
     // Insert the food post
     const { data, error } = await supabase
       .from('food_posts')
-      .insert([{ name, description, location, price, image_url }])
+      .insert([{ name, description, location, price, image_url, user_id }])
       .select()
       .single()
 
