@@ -92,7 +92,7 @@ export default function App() {
             text-[56px] sm:text-[80px] md:text-[110px] lg:text-[134px]
             tracking-tight m-0"
         >
-          THERE BE FOOD
+          FOOD OR ELSE
         </h1>
       </div>
 
