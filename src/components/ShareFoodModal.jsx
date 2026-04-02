@@ -6,6 +6,8 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
   const [price, setPrice] = useState('')
+  const [mapsUrl, setMapsUrl] = useState('')
+  const [showMapsField, setShowMapsField] = useState(false)
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,6 +41,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
         description: description.trim(),
         location: location.trim(),
         price: price ? parseFloat(price) : null,
+        mapsUrl: mapsUrl.trim() || null,
         photo,
         photoPreview,
       })
@@ -47,6 +50,8 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
       setDescription('')
       setLocation('')
       setPrice('')
+      setMapsUrl('')
+      setShowMapsField(false)
       setPhoto(null)
       setPhotoPreview(null)
       onClose()
@@ -198,6 +203,40 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   />
                 </div>
               </div>
+
+              {/* Google Maps link (optional) */}
+              {!showMapsField ? (
+                <button
+                  onClick={() => setShowMapsField(true)}
+                  className="flex items-center gap-1.5 text-sm text-neutral-400
+                    bg-transparent border-none cursor-pointer hover:text-neutral-600
+                    transition-colors p-0 -mt-8"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  </svg>
+                  Add Google Maps link
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2 -mt-8">
+                  <label className="text-sm text-text-primary tracking-wide">
+                    GOOGLE MAPS LINK <span className="text-neutral-400 font-normal">(optional)</span>
+                  </label>
+                  <div className="flex items-center gap-2.5 p-4 border-[1.5px] border-dashed border-brand-100 rounded-lg bg-white">
+                    <svg className="w-5 h-5 shrink-0 text-text-primary" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                    </svg>
+                    <input
+                      type="url"
+                      value={mapsUrl}
+                      onChange={(e) => setMapsUrl(e.target.value)}
+                      placeholder="Paste Google Maps share link"
+                      className="flex-1 text-sm text-text-primary placeholder:text-neutral-500
+                        border-none outline-none bg-transparent font-['Inter']"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Price */}
               <div className="flex flex-col gap-2">

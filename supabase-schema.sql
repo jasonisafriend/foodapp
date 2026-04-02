@@ -8,6 +8,7 @@ CREATE TABLE food_posts (
   location TEXT,
   price NUMERIC(10, 2),
   image_url TEXT,
+  maps_url TEXT,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

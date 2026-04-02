@@ -30,7 +30,7 @@ export default function useFoodPosts() {
     }
   }, [])
 
-  const addFood = useCallback(async ({ name, description, location, price, photo, photoPreview }) => {
+  const addFood = useCallback(async ({ name, description, location, price, mapsUrl, photo, photoPreview }) => {
     if (!isSupabaseConfigured()) {
       // Add to local state with mock behavior
       const newPost = {
@@ -39,6 +39,7 @@ export default function useFoodPosts() {
         description,
         location,
         price,
+        maps_url: mapsUrl || null,
         image_url: photoPreview || null,
         created_at: new Date().toISOString(),
       }
@@ -73,7 +74,7 @@ export default function useFoodPosts() {
     // Insert the food post
     const { data, error } = await supabase
       .from('food_posts')
-      .insert([{ name, description, location, price, image_url, user_id }])
+      .insert([{ name, description, location, price, image_url, maps_url: mapsUrl || null, user_id }])
       .select()
       .single()
 

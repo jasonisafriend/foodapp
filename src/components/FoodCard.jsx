@@ -1,5 +1,43 @@
 import { useState } from 'react'
 
+function getMapsUrl(food) {
+  if (food.maps_url) return food.maps_url
+  if (food.location) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.location)}`
+  }
+  return null
+}
+
+function LocationLink({ food, className }) {
+  const url = getMapsUrl(food)
+  if (!food.location) return null
+
+  const content = (
+    <>
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+      {food.location}
+    </>
+  )
+
+  if (url) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${className} underline decoration-white/40 underline-offset-2 hover:decoration-white/80 transition-colors`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return <span className={className}>{content}</span>
+}
+
 export default function FoodCard({ food, mobile }) {
   const [hovered, setHovered] = useState(false)
 
@@ -28,14 +66,7 @@ export default function FoodCard({ food, mobile }) {
             </p>
           )}
           <div className="flex items-center gap-4 text-white/80 text-sm">
-            {food.location && (
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                {food.location}
-              </span>
-            )}
+            <LocationLink food={food} className="flex items-center gap-1" />
             {food.price != null && (
               <span className="flex items-center gap-0.5 font-medium">
                 ${food.price}
@@ -78,14 +109,7 @@ export default function FoodCard({ food, mobile }) {
           </p>
         )}
         <div className="flex items-center gap-4 text-white/80 text-sm">
-          {food.location && (
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
-              {food.location}
-            </span>
-          )}
+          <LocationLink food={food} className="flex items-center gap-1" />
           {food.price != null && (
             <span className="flex items-center gap-0.5 font-medium">
               ${food.price}
