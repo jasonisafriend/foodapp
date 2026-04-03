@@ -38,32 +38,17 @@ function LocationLink({ food, className, dark }) {
   return <span className={className}>{content}</span>
 }
 
-/** Compute title font size — scale down for longer names to keep card info height consistent */
-function getTitleSize(name) {
-  if (!name) return '32px'
-  const len = name.length
-  if (len <= 16) return '32px'
-  if (len <= 24) return '26px'
-  if (len <= 32) return '22px'
-  return '18px'
-}
-
-/** Mobile card info — rendered separately below the image, fixed height */
+/** Mobile card info — rendered separately below the image */
 export function CardInfo({ food }) {
   if (!food) return null
 
-  const titleSize = getTitleSize(food.name)
-
   return (
-    <div className="px-6 flex flex-col gap-1.5 overflow-hidden">
-      <h3
-        className="font-['Playfair_Display'] italic font-semibold text-black leading-tight truncate"
-        style={{ fontSize: titleSize }}
-      >
+    <div className="px-6 flex flex-col gap-2">
+      <h3 className="font-['Playfair_Display'] italic font-semibold text-black text-[32px] leading-tight">
         {food.name}
       </h3>
       {food.description && (
-        <p className="text-black/70 text-sm leading-relaxed line-clamp-2">
+        <p className="text-black/70 text-sm leading-relaxed line-clamp-3">
           {food.description}
         </p>
       )}

@@ -4,7 +4,6 @@ import ShareFoodModal from './components/ShareFoodModal'
 import AuthModal from './components/AuthModal'
 import useFoodPosts from './hooks/useFoodPosts'
 import useScrollColor from './hooks/useScrollColor'
-import useHeaderContrast from './hooks/useHeaderContrast'
 import { useAuth } from './lib/AuthContext'
 import { isSupabaseConfigured } from './lib/supabase'
 
@@ -12,48 +11,9 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [currentFoodIndex, setCurrentFoodIndex] = useState(0)
   const { foods, loading, addFood } = useFoodPosts()
   const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
-
-  // Determine header contrast from current mobile card image
-  const currentFood = foods[currentFoodIndex]
-  const headerIsDark = useHeaderContrast(currentFood?.image_url)
-  const headerColor = headerIsDark ? 'white' : 'black'
-
-  // Lock ALL vertical scroll on mobile (html + body)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    if (!mq.matches) return
-
-    const html = document.documentElement
-    const body = document.body
-    html.style.overflow = 'hidden'
-    html.style.height = '100%'
-    body.style.overflow = 'hidden'
-    body.style.height = '100%'
-    body.style.position = 'fixed'
-    body.style.width = '100%'
-    body.style.top = '0'
-    body.style.left = '0'
-
-    // Prevent any residual touchmove on body
-    const prevent = (e) => e.preventDefault()
-    body.addEventListener('touchmove', prevent, { passive: false })
-
-    return () => {
-      html.style.overflow = ''
-      html.style.height = ''
-      body.style.overflow = ''
-      body.style.height = ''
-      body.style.position = ''
-      body.style.width = ''
-      body.style.top = ''
-      body.style.left = ''
-      body.removeEventListener('touchmove', prevent)
-    }
-  }, [])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -64,10 +24,11 @@ export default function App() {
       document.body.style.left = '0'
       document.body.style.right = '0'
       return () => {
-        document.body.style.position = 'fixed'
-        document.body.style.top = '0'
-        document.body.style.left = '0'
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
         document.body.style.right = ''
+        window.scrollTo(0, scrollY)
       }
     }
   }, [isMenuOpen])
@@ -87,14 +48,14 @@ export default function App() {
     >
       {/* Header — floats over content on mobile */}
       <div className="px-[4%] pt-[34px] pb-0 relative z-40 md:z-auto">
-        {/* Mobile: hamburger menu button — top right, dynamic contrast */}
+        {/* Mobile: hamburger menu button — top right */}
         <button
           onClick={() => setIsMenuOpen(true)}
           className="md:hidden absolute right-[4%] top-[34px] z-20
-            bg-transparent border-none cursor-pointer p-1 transition-colors duration-300"
+            bg-transparent border-none cursor-pointer p-1"
           aria-label="Open menu"
         >
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke={headerColor} strokeWidth={2}>
+          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -134,8 +95,7 @@ export default function App() {
         <img
           src="/logo2.svg"
           alt="FOOD OR ELSE"
-          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto pr-[52px] md:pr-0 transition-[filter] duration-300"
-          style={headerIsDark ? { filter: 'brightness(0) invert(1)' } : {}}
+          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto pr-[52px] md:pr-0"
         />
       </div>
 
@@ -195,7 +155,7 @@ export default function App() {
             <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <InfiniteScroll foods={foods} onScrollProgress={onScrollProgress} onIndexChange={setCurrentFoodIndex} />
+          <InfiniteScroll foods={foods} onScrollProgress={onScrollProgress} />
         )}
       </div>
 

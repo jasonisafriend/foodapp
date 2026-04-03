@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import FoodCard, { MobileFoodImage, CardInfo } from './FoodCard'
 
-export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange }) {
+export default function InfiniteScroll({ foods, onScrollProgress }) {
   const scrollRef = useRef(null)
   const scrollPos = useRef(0)
   const totalScrolled = useRef(0)
@@ -57,11 +57,6 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
     return () => window.removeEventListener('wheel', handleWheel)
   }, [updatePosition])
 
-  // Report current index to parent (for contrast detection)
-  useEffect(() => {
-    if (onIndexChange) onIndexChange(currentIndex)
-  }, [currentIndex, onIndexChange])
-
   // Mobile: report color progress based on current index
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)')
@@ -71,13 +66,13 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
     onScrollProgress(progress)
   }, [currentIndex, onScrollProgress, foods.length])
 
-  // Mobile: snap track to current index
+  // Mobile: snap track to current index (no animation on mount)
   const snapToIndex = useCallback((index, animate = true) => {
     const track = mobileTrackRef.current
     if (!track) return
     const vw = window.innerWidth
     const offset = index * vw
-    track.style.transition = animate ? 'transform 0.3s ease-out' : 'none'
+    track.style.transition = animate ? 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)' : 'none'
     track.style.transform = `translateX(-${offset}px)`
   }, [])
 
@@ -104,7 +99,7 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
 
   const onTouchMove = useCallback((e) => {
     if (touchStart.current === null) return
-    e.preventDefault() // prevent any vertical scroll
+    e.preventDefault()
     touchDelta.current = e.touches[0].clientX - touchStart.current
     const track = mobileTrackRef.current
     if (!track) return
@@ -116,13 +111,15 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
   const onTouchEnd = useCallback(() => {
     if (touchStart.current === null) return
     const delta = touchDelta.current
-    const threshold = window.innerWidth * 0.2
+    const threshold = window.innerWidth * 0.12
     touchStart.current = null
 
     let newIndex = currentIndex
     if (delta < -threshold) {
+      // Swiped left → next
       newIndex = currentIndex + 1
     } else if (delta > threshold) {
+      // Swiped right → prev
       newIndex = currentIndex - 1
     }
 
@@ -139,12 +136,13 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
     animating.current = true
     setCurrentIndex(newIndex)
 
+    // Update color on swipe
     if (onScrollProgress && foods.length > 0) {
       const progress = (mobileTotalSwiped.current / foods.length) % 1
       onScrollProgress(progress)
     }
 
-    setTimeout(() => { animating.current = false }, 300)
+    setTimeout(() => { animating.current = false }, 350)
   }, [currentIndex, foods.length, onScrollProgress])
 
   if (foods.length === 0) {
@@ -165,7 +163,7 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
       {/* Mobile: full-screen horizontal swipe carousel */}
       <div
         className="md:hidden fixed inset-0 flex flex-col"
-        style={{ top: 0, zIndex: 1, touchAction: 'pan-x' }}
+        style={{ top: 0, zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x' }}
       >
         {/* Image area — fills available space above card info */}
         <div
@@ -192,8 +190,8 @@ export default function InfiniteScroll({ foods, onScrollProgress, onIndexChange 
           </div>
         </div>
 
-        {/* Card info pinned at bottom — fixed height so layout doesn't shift */}
-        <div className="shrink-0 h-[160px] flex flex-col justify-center py-3 pb-6">
+        {/* Card info pinned at bottom */}
+        <div className="shrink-0 py-4 pb-8">
           <CardInfo food={activeFood} />
         </div>
       </div>
