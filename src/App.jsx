@@ -46,22 +46,34 @@ export default function App() {
       className="min-h-screen h-screen w-full overflow-hidden relative transition-colors duration-300 ease-out"
       style={{ backgroundColor: bgColor }}
     >
-      {/* Header — floats over content on mobile */}
-      <div className="px-[4%] pt-[34px] pb-0 relative z-40 md:z-auto">
-        {/* Mobile: hamburger menu button — top right */}
-        <button
-          onClick={() => setIsMenuOpen(true)}
-          className="md:hidden absolute right-[4%] top-[34px] z-20
-            bg-transparent border-none cursor-pointer p-1"
-          aria-label="Open menu"
-        >
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+      {/* Mobile header — black bar with upward bleed for browser chrome */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40">
+        {/* Black bleed above the bar — covers browser chrome / notch area */}
+        <div className="bg-black" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center justify-between px-4 py-2">
+            <img
+              src="/logo2.svg"
+              alt="FOOD OR ELSE"
+              className="h-[24px] w-auto"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="bg-transparent border-none cursor-pointer p-0"
+              aria-label="Open menu"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
 
+      {/* Desktop header */}
+      <div className="hidden md:block px-[4%] pt-[34px] pb-0 relative">
         {/* Desktop: Sign In top-right, Share Food bottom-right of headline */}
-        <div className="hidden md:flex flex-col justify-between items-end absolute right-[4%] top-[34px] bottom-0 z-10">
+        <div className="flex flex-col justify-between items-end absolute right-[4%] top-[34px] bottom-0 z-10">
           {user ? (
             <button
               onClick={signOut}
@@ -95,7 +107,7 @@ export default function App() {
         <img
           src="/logo2.svg"
           alt="FOOD OR ELSE"
-          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto pr-[52px] md:pr-0"
+          className="h-[90px] lg:h-[112px] w-auto"
         />
       </div>
 
