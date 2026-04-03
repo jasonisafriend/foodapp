@@ -43,11 +43,11 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen w-full md:overflow-hidden relative transition-colors duration-300 ease-out"
+      className="min-h-screen w-full overflow-hidden relative transition-colors duration-300 ease-out"
       style={{ backgroundColor: bgColor }}
     >
-      {/* Header */}
-      <div className="px-[4%] pt-[34px] pb-0 relative">
+      {/* Header — floats over content on mobile */}
+      <div className="px-[4%] pt-[34px] pb-0 relative z-40 md:z-auto">
         {/* Mobile: hamburger menu button — top right */}
         <button
           onClick={() => setIsMenuOpen(true)}
@@ -148,8 +148,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Food cards */}
-      <div className="mt-[40px] md:mt-[56px]">
+      {/* Food cards — on mobile the carousel is fixed/full-screen, on desktop flows normally */}
+      <div className="mt-0 md:mt-[56px]">
         {loading ? (
           <div className="flex items-center justify-center h-[400px] md:h-[523px]">
             <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -158,20 +158,6 @@ export default function App() {
           <InfiniteScroll foods={foods} onScrollProgress={onScrollProgress} />
         )}
       </div>
-
-      {/* Sticky Share Food button — mobile only */}
-      <button
-        onClick={handleShareClick}
-        className="md:hidden fixed bottom-6 right-4 z-30 flex items-center gap-2.5 h-[44px] px-4
-          bg-black rounded-full text-white text-base cursor-pointer border-none
-          shadow-[0_4px_20px_rgba(0,0,0,0.25)]
-          active:scale-95 transition-transform"
-      >
-        Share Food
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
 
       {/* Auth Modal */}
       {isAuthOpen && (

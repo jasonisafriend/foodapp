@@ -8,7 +8,7 @@ function getMapsUrl(food) {
   return null
 }
 
-function LocationLink({ food, className }) {
+function LocationLink({ food, className, dark }) {
   const url = getMapsUrl(food)
   if (!food.location) return null
 
@@ -27,7 +27,7 @@ function LocationLink({ food, className }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className={`${className} underline decoration-white/40 underline-offset-2 hover:decoration-white/80 transition-colors`}
+        className={`${className} underline ${dark ? 'decoration-black/30 hover:decoration-black/60' : 'decoration-white/40 hover:decoration-white/80'} underline-offset-2 transition-colors`}
         onClick={(e) => e.stopPropagation()}
       >
         {content}
@@ -38,45 +38,51 @@ function LocationLink({ food, className }) {
   return <span className={className}>{content}</span>
 }
 
-export default function FoodCard({ food, mobile }) {
-  const [hovered, setHovered] = useState(false)
+/** Mobile card info — rendered separately below the image */
+export function CardInfo({ food }) {
+  if (!food) return null
 
-  if (mobile) {
-    return (
-      <div className="relative w-full aspect-[4/5] rounded-[20px] overflow-hidden">
-        {food.image_url ? (
-          <img
-            src={food.image_url}
-            alt={food.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-[#d9d9d9]" />
+  return (
+    <div className="px-6 flex flex-col gap-2">
+      <h3 className="font-['Playfair_Display'] italic font-semibold text-black text-[32px] leading-tight">
+        {food.name}
+      </h3>
+      {food.description && (
+        <p className="text-black/70 text-sm leading-relaxed line-clamp-3">
+          {food.description}
+        </p>
+      )}
+      <div className="flex items-center gap-4 text-black/60 text-sm">
+        <LocationLink food={food} className="flex items-center gap-1" dark />
+        {food.price != null && (
+          <span className="flex items-center gap-0.5 font-medium">
+            ${food.price}
+          </span>
         )}
-
-        {/* Always-visible overlay on mobile */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent
-          flex flex-col justify-end p-5">
-          <h3 className="font-['Playfair_Display'] italic font-medium text-white text-2xl leading-tight mb-1.5">
-            {food.name}
-          </h3>
-          {food.description && (
-            <p className="text-white/90 text-sm leading-relaxed mb-2 line-clamp-3">
-              {food.description}
-            </p>
-          )}
-          <div className="flex items-center gap-4 text-white/80 text-sm">
-            <LocationLink food={food} className="flex items-center gap-1" />
-            {food.price != null && (
-              <span className="flex items-center gap-0.5 font-medium">
-                ${food.price}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
+
+/** Mobile full-bleed image card — no rounded corners, no overlay */
+export function MobileFoodImage({ food, style }) {
+  return (
+    <div className="w-full h-full shrink-0" style={style}>
+      {food.image_url ? (
+        <img
+          src={food.image_url}
+          alt={food.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-[#d9d9d9]" />
+      )}
+    </div>
+  )
+}
+
+export default function FoodCard({ food }) {
+  const [hovered, setHovered] = useState(false)
 
   return (
     <div

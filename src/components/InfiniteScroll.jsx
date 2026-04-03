@@ -1,22 +1,28 @@
-import { useRef, useEffect, useCallback } from 'react'
-import FoodCard from './FoodCard'
+import { useRef, useEffect, useCallback, useState } from 'react'
+import FoodCard, { MobileFoodImage, CardInfo } from './FoodCard'
 
 export default function InfiniteScroll({ foods, onScrollProgress }) {
   const scrollRef = useRef(null)
-  const mobileRef = useRef(null)
   const scrollPos = useRef(0)
   const totalScrolled = useRef(0)
 
-  // Duplicate cards for seamless horizontal wrapping (desktop only)
+  // Mobile swipe state
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const touchStart = useRef(null)
+  const touchDelta = useRef(0)
+  const mobileTrackRef = useRef(null)
+  const animating = useRef(false)
+  const mobileTotalSwiped = useRef(0)
+
+  // Duplicate cards for seamless horizontal wrapping (desktop)
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
 
   const gap = 56
   const cardWidth = 392
   const singleSetWidth = foods.length * (cardWidth + gap)
-
-  // One full color cycle = scrolling through all cards once
   const colorCycleWidth = singleSetWidth || 1
 
+  // Desktop: wheel-driven horizontal scroll
   const updatePosition = useCallback((delta) => {
     const el = scrollRef.current
     if (!el || singleSetWidth === 0) return
@@ -31,7 +37,6 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     }
     el.style.transform = `translateX(-${scrollPos.current}px)`
 
-    // Report progress for background color
     if (onScrollProgress) {
       const progress = (totalScrolled.current / colorCycleWidth) % 1
       onScrollProgress(progress)
@@ -39,7 +44,6 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   }, [singleSetWidth, colorCycleWidth, onScrollProgress])
 
   useEffect(() => {
-    // Only hijack wheel on desktop (md breakpoint = 768px)
     const mq = window.matchMedia('(min-width: 768px)')
     if (!mq.matches) return
 
@@ -53,22 +57,92 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     return () => window.removeEventListener('wheel', handleWheel)
   }, [updatePosition])
 
-  // Mobile: track vertical scroll for color changes
+  // Mobile: report color progress based on current index
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)')
-    if (mq.matches || !onScrollProgress) return
+    if (mq.matches || !onScrollProgress || foods.length === 0) return
 
-    const handleScroll = () => {
-      const scrollY = window.scrollY
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      if (docHeight > 0) {
-        onScrollProgress(scrollY / docHeight)
-      }
+    const progress = (mobileTotalSwiped.current / foods.length) % 1
+    onScrollProgress(progress)
+  }, [currentIndex, onScrollProgress, foods.length])
+
+  // Mobile: snap track to current index (no animation on mount)
+  const snapToIndex = useCallback((index, animate = true) => {
+    const track = mobileTrackRef.current
+    if (!track) return
+    const vw = window.innerWidth
+    const offset = index * vw
+    track.style.transition = animate ? 'transform 0.3s ease-out' : 'none'
+    track.style.transform = `translateX(-${offset}px)`
+  }, [])
+
+  // Snap on index change
+  useEffect(() => {
+    snapToIndex(currentIndex, true)
+  }, [currentIndex, snapToIndex])
+
+  // Snap on resize
+  useEffect(() => {
+    const handleResize = () => snapToIndex(currentIndex, false)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [currentIndex, snapToIndex])
+
+  // Mobile touch handlers
+  const onTouchStart = useCallback((e) => {
+    if (animating.current) return
+    touchStart.current = e.touches[0].clientX
+    touchDelta.current = 0
+    const track = mobileTrackRef.current
+    if (track) track.style.transition = 'none'
+  }, [])
+
+  const onTouchMove = useCallback((e) => {
+    if (touchStart.current === null) return
+    touchDelta.current = e.touches[0].clientX - touchStart.current
+    const track = mobileTrackRef.current
+    if (!track) return
+    const vw = window.innerWidth
+    const offset = currentIndex * vw - touchDelta.current
+    track.style.transform = `translateX(-${offset}px)`
+  }, [currentIndex])
+
+  const onTouchEnd = useCallback(() => {
+    if (touchStart.current === null) return
+    const delta = touchDelta.current
+    const threshold = window.innerWidth * 0.2
+    touchStart.current = null
+
+    let newIndex = currentIndex
+    if (delta < -threshold) {
+      // Swiped left → next
+      newIndex = currentIndex + 1
+    } else if (delta > threshold) {
+      // Swiped right → prev
+      newIndex = currentIndex - 1
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [onScrollProgress])
+    // Wrap around
+    if (foods.length > 0) {
+      if (newIndex < 0) newIndex = foods.length - 1
+      else if (newIndex >= foods.length) newIndex = 0
+    }
+
+    if (newIndex !== currentIndex) {
+      mobileTotalSwiped.current += 1
+    }
+
+    animating.current = true
+    setCurrentIndex(newIndex)
+
+    // Update color on swipe
+    if (onScrollProgress && foods.length > 0) {
+      const progress = (mobileTotalSwiped.current / foods.length) % 1
+      onScrollProgress(progress)
+    }
+
+    setTimeout(() => { animating.current = false }, 300)
+  }, [currentIndex, foods.length, onScrollProgress])
 
   if (foods.length === 0) {
     return (
@@ -81,13 +155,43 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     )
   }
 
+  const activeFood = foods[currentIndex] || foods[0]
+
   return (
     <>
-      {/* Mobile: vertical stack, normal scroll */}
-      <div className="flex flex-col gap-5 px-4 pb-28 md:hidden">
-        {foods.map((food) => (
-          <FoodCard key={food.id} food={food} mobile />
-        ))}
+      {/* Mobile: full-screen horizontal swipe carousel */}
+      <div
+        className="md:hidden fixed inset-0 flex flex-col"
+        style={{ top: 0, zIndex: 1 }}
+      >
+        {/* Image area — fills available space above card info */}
+        <div
+          className="flex-1 overflow-hidden relative"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <div
+            ref={mobileTrackRef}
+            className="flex h-full will-change-transform"
+            style={{ width: `${foods.length * 100}vw` }}
+          >
+            {foods.map((food) => (
+              <div
+                key={food.id}
+                className="h-full"
+                style={{ width: '100vw', minWidth: '100vw' }}
+              >
+                <MobileFoodImage food={food} style={{ width: '100%', height: '100%' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Card info pinned at bottom */}
+        <div className="shrink-0 py-4 pb-8">
+          <CardInfo food={activeFood} />
+        </div>
       </div>
 
       {/* Desktop: horizontal infinite scroll driven by wheel */}
