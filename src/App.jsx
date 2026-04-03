@@ -43,7 +43,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen w-full overflow-hidden relative transition-colors duration-300 ease-out"
+      className="min-h-screen h-screen w-full overflow-hidden relative transition-colors duration-300 ease-out"
       style={{ backgroundColor: bgColor }}
     >
       {/* Header — floats over content on mobile */}

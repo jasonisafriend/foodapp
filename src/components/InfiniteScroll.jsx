@@ -163,7 +163,7 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
       {/* Mobile: full-screen horizontal swipe carousel */}
       <div
         className="md:hidden fixed inset-0 flex flex-col"
-        style={{ top: 0, zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x' }}
+        style={{ top: 0, bottom: 0, zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x', backgroundColor: 'inherit' }}
       >
         {/* Image area — fills available space above card info */}
         <div
