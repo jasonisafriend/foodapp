@@ -92,13 +92,11 @@ export default function App() {
           </button>
         </div>
 
-        <h1
-          className="font-['Inter'] font-black text-black leading-none
-            text-[56px] sm:text-[80px] md:text-[110px] lg:text-[134px]
-            tracking-tight m-0"
-        >
-          FOOD OR ELSE
-        </h1>
+        <img
+          src="/logo.svg"
+          alt="FOOD OR ELSE"
+          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto"
+        />
       </div>
 
       {/* Mobile full-screen menu overlay */}
