@@ -93,9 +93,9 @@ export default function App() {
         </div>
 
         <img
-          src="/logo.svg"
+          src="/logo2.svg"
           alt="FOOD OR ELSE"
-          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto"
+          className="h-[50px] sm:h-[70px] md:h-[90px] lg:h-[112px] w-auto pr-[52px] md:pr-0"
         />
       </div>
 
