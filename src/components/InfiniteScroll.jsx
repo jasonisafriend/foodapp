@@ -89,18 +89,24 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   }, [currentIndex, snapToIndex])
 
   // Mobile touch handlers
+  const touchStartY = useRef(null)
+
   const onTouchStart = useCallback((e) => {
     if (animating.current) return
     touchStart.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
     touchDelta.current = 0
     const track = mobileTrackRef.current
     if (track) track.style.transition = 'none'
   }, [])
 
+  const touchEndY = useRef(null)
+
   const onTouchMove = useCallback((e) => {
     if (touchStart.current === null) return
     e.preventDefault()
     touchDelta.current = e.touches[0].clientX - touchStart.current
+    touchEndY.current = e.touches[0].clientY
     const track = mobileTrackRef.current
     if (!track) return
     const vw = window.innerWidth
@@ -108,18 +114,43 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     track.style.transform = `translateX(-${offset}px)`
   }, [currentIndex])
 
+  // Helper: get Maps URL for a food item
+  const getMapsUrl = useCallback((food) => {
+    if (!food) return null
+    if (food.maps_url) return food.maps_url
+    if (food.location) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.location)}`
+    }
+    return null
+  }, [])
+
   const onTouchEnd = useCallback(() => {
     if (touchStart.current === null) return
-    const delta = touchDelta.current
+    const deltaX = touchDelta.current
+    const deltaY = (touchStartY.current !== null && touchEndY.current !== null)
+      ? touchStartY.current - touchEndY.current
+      : 0
     const threshold = window.innerWidth * 0.12
     touchStart.current = null
+    touchStartY.current = null
+    touchEndY.current = null
+
+    // Swipe up detection: vertical > horizontal and upward > 60px
+    if (deltaY > 60 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      const food = foods[currentIndex]
+      const url = getMapsUrl(food)
+      if (url) {
+        window.open(url, '_blank')
+      }
+      // Snap back to current position
+      snapToIndex(currentIndex, true)
+      return
+    }
 
     let newIndex = currentIndex
-    if (delta < -threshold) {
-      // Swiped left → next
+    if (deltaX < -threshold) {
       newIndex = currentIndex + 1
-    } else if (delta > threshold) {
-      // Swiped right → prev
+    } else if (deltaX > threshold) {
       newIndex = currentIndex - 1
     }
 
@@ -143,7 +174,7 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     }
 
     setTimeout(() => { animating.current = false }, 350)
-  }, [currentIndex, foods.length, onScrollProgress])
+  }, [currentIndex, foods, foods.length, onScrollProgress, getMapsUrl, snapToIndex])
 
   if (foods.length === 0) {
     return (
