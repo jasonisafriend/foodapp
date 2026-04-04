@@ -43,7 +43,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen h-screen w-full overflow-hidden relative transition-colors duration-300 ease-out"
+      className="min-h-screen h-screen w-full overflow-hidden relative transition-colors duration-500 ease-in-out"
       style={{ backgroundColor: bgColor }}
     >
       {/* Mobile header — black bar with upward bleed for browser chrome */}

@@ -72,7 +72,7 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     if (!track) return
     const vw = window.innerWidth
     const offset = index * vw
-    track.style.transition = animate ? 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)' : 'none'
+    track.style.transition = animate ? 'transform 0.5s cubic-bezier(0.22, 0.68, 0, 1.0)' : 'none'
     track.style.transform = `translateX(-${offset}px)`
   }, [])
 
@@ -167,13 +167,15 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     animating.current = true
     setCurrentIndex(newIndex)
 
-    // Update color on swipe
+    // Update color on swipe — slight delay so the photo settles first
     if (onScrollProgress && foods.length > 0) {
-      const progress = (mobileTotalSwiped.current / foods.length) % 1
-      onScrollProgress(progress)
+      setTimeout(() => {
+        const progress = (mobileTotalSwiped.current / foods.length) % 1
+        onScrollProgress(progress)
+      }, 150)
     }
 
-    setTimeout(() => { animating.current = false }, 350)
+    setTimeout(() => { animating.current = false }, 500)
   }, [currentIndex, foods, foods.length, onScrollProgress, getMapsUrl, snapToIndex])
 
   if (foods.length === 0) {
