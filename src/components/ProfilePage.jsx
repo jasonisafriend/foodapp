@@ -89,12 +89,12 @@ export default function ProfilePage({ onBack, onSignOut }) {
         .update({ username: clean })
         .eq('id', user.id)
         .select('username')
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
       if (!updated) {
-        throw new Error('Update failed — please try again')
+        throw new Error('Update failed — check permissions and try again')
       }
 
       // Refresh profile in AuthContext so the new username propagates everywhere
