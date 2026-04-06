@@ -16,12 +16,16 @@ export default function useFoodPosts() {
     try {
       const { data, error } = await supabase
         .from('food_posts')
-        .select('*')
+        .select('*, profiles:user_id(username)')
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      // Real posts first, then placeholder cards to fill the feed
-      setFoods([...(data || []), ...mockFoodPosts])
+      // Flatten the joined profile data and merge with mock posts
+      const posts = (data || []).map(post => ({
+        ...post,
+        username: post.profiles?.username || null,
+      }))
+      setFoods([...posts, ...mockFoodPosts])
     } catch (err) {
       console.error('Error fetching food posts:', err)
       setFoods(mockFoodPosts)

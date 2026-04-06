@@ -20,8 +20,13 @@ CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   phone TEXT,
   display_name TEXT,
+  username TEXT UNIQUE,
+  email TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_profiles_username ON profiles (username);
+CREATE INDEX idx_profiles_email ON profiles (email);
 
 -- =============================================
 -- STEP 3: Auto-create a profile row on new sign-up
@@ -29,11 +34,13 @@ CREATE TABLE profiles (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, phone, display_name)
+  INSERT INTO public.profiles (id, phone, display_name, username, email)
   VALUES (
     NEW.id,
     NEW.phone,
-    COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.raw_user_meta_data ->> 'name', NULL)
+    COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.raw_user_meta_data ->> 'name', NULL),
+    NEW.raw_user_meta_data ->> 'username',
+    NEW.email
   );
   RETURN NEW;
 END;

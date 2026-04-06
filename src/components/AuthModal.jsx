@@ -21,20 +21,33 @@ export default function AuthModal({ onClose }) {
       window.scrollTo(0, scrollY)
     }
   }, [])
+
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!email.trim() || !password) return
+    if (mode === 'signup' && (!email.trim() || !username.trim() || !password)) return
+    if (mode === 'signin' && (!email.trim() || !password)) return
+
     setError(null)
     setLoading(true)
     try {
       if (mode === 'signup') {
-        await signUp(email.trim(), password)
+        // Validate username format
+        const cleanUsername = username.trim().toLowerCase()
+        if (cleanUsername.length < 3) {
+          throw new Error('Username must be at least 3 characters')
+        }
+        if (!/^[a-z0-9_]+$/.test(cleanUsername)) {
+          throw new Error('Username can only contain letters, numbers, and underscores')
+        }
+        await signUp(email.trim(), password, cleanUsername)
       } else {
+        // Sign in accepts email or username
         await signIn(email.trim(), password)
       }
       onClose()
@@ -78,29 +91,50 @@ export default function AuthModal({ onClose }) {
           </div>
 
           <div className="flex flex-col gap-4">
+            {/* Email — always shown. On sign-in, also accepts username */}
             <input
-              type="email"
+              type={mode === 'signup' ? 'email' : 'text'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
+              placeholder={mode === 'signin' ? 'Email or username' : 'Email'}
               className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
-                rounded-lg text-base text-text-primary placeholder:text-neutral-500
+                rounded-lg text-[16px] text-text-primary placeholder:text-neutral-500
                 outline-none bg-white font-['Inter']"
               autoFocus
             />
+
+            {/* Username — only shown during sign-up */}
+            {mode === 'signup' && (
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                placeholder="Username"
+                maxLength={20}
+                className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
+                  rounded-lg text-[16px] text-text-primary placeholder:text-neutral-500
+                  outline-none bg-white font-['Inter']"
+              />
+            )}
+
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               className="w-full h-[48px] px-4 border-[1.5px] border-dashed border-brand-100
-                rounded-lg text-base text-text-primary placeholder:text-neutral-500
+                rounded-lg text-[16px] text-text-primary placeholder:text-neutral-500
                 outline-none bg-white font-['Inter']"
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
+
             <button
               onClick={handleSubmit}
-              disabled={!email.trim() || !password || loading}
+              disabled={
+                (mode === 'signup' && (!email.trim() || !username.trim() || !password))
+                || (mode === 'signin' && (!email.trim() || !password))
+                || loading
+              }
               className="w-full h-[48px] bg-black rounded-full text-white text-base
                 font-medium cursor-pointer border-none
                 hover:bg-gray-800 transition-colors
@@ -111,6 +145,7 @@ export default function AuthModal({ onClose }) {
                 : (mode === 'signin' ? 'Sign in' : 'Sign up')
               }
             </button>
+
             <button
               onClick={toggleMode}
               className="text-sm text-neutral-500 bg-transparent border-none
