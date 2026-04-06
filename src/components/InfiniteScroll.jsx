@@ -13,6 +13,16 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   const mobileTrackRef = useRef(null)
   const animating = useRef(false)
   const mobileTotalSwiped = useRef(0)
+  const prevFoodsLength = useRef(foods.length)
+
+  // When a new post is added (foods array grows), reset to index 0
+  useEffect(() => {
+    if (foods.length > prevFoodsLength.current) {
+      setCurrentIndex(0)
+      mobileTotalSwiped.current = 0
+    }
+    prevFoodsLength.current = foods.length
+  }, [foods.length])
 
   // Duplicate cards for seamless horizontal wrapping (desktop)
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
