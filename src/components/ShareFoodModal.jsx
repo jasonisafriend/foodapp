@@ -29,12 +29,14 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
 
   // Flow state: 'photo' → 'crop' → 'details'
   const [step, setStep] = useState('photo')
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false)
 
   // Photo state
   const [rawImageUrl, setRawImageUrl] = useState(null) // original data-url for cropper
   const [photo, setPhoto] = useState(null)             // final cropped blob
   const [photoPreview, setPhotoPreview] = useState(null) // final cropped preview url
-  const fileInputRef = useRef(null)
+  const cameraInputRef = useRef(null)
+  const libraryInputRef = useRef(null)
 
   // Details state
   const [name, setName] = useState('')
@@ -60,6 +62,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   useEffect(() => {
     if (!isOpen) {
       setStep('photo')
+      setShowPhotoMenu(false)
       setRawImageUrl(null)
       setPhoto(null)
       setPhotoPreview(null)
@@ -132,16 +135,25 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
 
   if (!isOpen) return null
 
-  // Hidden file input (shared across steps)
-  const fileInput = (
-    <input
-      ref={fileInputRef}
-      type="file"
-      accept="image/*"
-      capture="environment"
-      className="hidden"
-      onChange={handlePhotoChange}
-    />
+  // Two hidden file inputs: one for camera (with capture), one for library (no capture)
+  const fileInputs = (
+    <>
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handlePhotoChange}
+      />
+      <input
+        ref={libraryInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoChange}
+      />
+    </>
   )
 
   return (
@@ -182,24 +194,81 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                   Share a photo
                 </p>
 
-                {/* Photo area — tap to pick */}
-                <div
-                  className="w-full bg-white border border-solid border-[#f4ff20] rounded-[20px] flex flex-col items-center justify-center gap-5 cursor-pointer
-                    hover:border-[#e8f200] transition-colors"
-                  style={{ aspectRatio: '400 / 500' }}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {photoPreview ? (
-                    <img src={photoPreview} alt="Selected" className="w-full h-full object-cover rounded-[20px]" />
-                  ) : (
+                {/* Photo area — tap to show menu */}
+                <div className="relative w-full">
+                  <div
+                    className="w-full bg-white border border-solid border-[#f4ff20] rounded-[20px] flex flex-col items-center justify-center gap-5 cursor-pointer
+                      hover:border-[#e8f200] transition-colors"
+                    style={{ aspectRatio: '400 / 500' }}
+                    onClick={() => setShowPhotoMenu(true)}
+                  >
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="Selected" className="w-full h-full object-cover rounded-[20px]" />
+                    ) : (
+                      <>
+                        <div className="w-[44px] h-[44px] rounded-full bg-[#f5d6d6] flex items-center justify-center">
+                          <svg className="w-6 h-6 text-[#23232e]" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0"/>
+                            <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                          </svg>
+                        </div>
+                        <p className="text-xl font-bold text-black font-['Nunito']">Add Photo</p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Photo source menu */}
+                  {showPhotoMenu && (
                     <>
-                      <div className="w-[44px] h-[44px] rounded-full bg-[#f5d6d6] flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#23232e]" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0"/>
-                          <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
-                        </svg>
+                      {/* Backdrop to close menu */}
+                      <div className="fixed inset-0 z-10" onClick={() => setShowPhotoMenu(false)} />
+
+                      {/* Bottom action sheet */}
+                      <div className="fixed bottom-0 left-0 right-0 z-20 px-4 animate-[slideUp_0.2s_ease-out]"
+                        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))', animationName: 'slideUp' }}
+                      >
+                        <div className="bg-white rounded-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.15)] overflow-hidden">
+                          <button
+                            onClick={() => {
+                              setShowPhotoMenu(false)
+                              cameraInputRef.current?.click()
+                            }}
+                            className="w-full flex items-center gap-4 px-6 py-4 bg-transparent border-none cursor-pointer
+                              hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
+                          >
+                            <svg className="w-6 h-6 text-[#23232e] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0"/>
+                              <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                            </svg>
+                            <span className="text-[17px] font-medium text-[#1f1f1f] font-['Inter']">Take Photo</span>
+                          </button>
+
+                          <div className="h-px bg-gray-100 mx-6" />
+
+                          <button
+                            onClick={() => {
+                              setShowPhotoMenu(false)
+                              libraryInputRef.current?.click()
+                            }}
+                            className="w-full flex items-center gap-4 px-6 py-4 bg-transparent border-none cursor-pointer
+                              hover:bg-gray-50 active:bg-gray-100 transition-colors text-left"
+                          >
+                            <svg className="w-6 h-6 text-[#23232e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                            </svg>
+                            <span className="text-[17px] font-medium text-[#1f1f1f] font-['Inter']">Choose from Library</span>
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => setShowPhotoMenu(false)}
+                          className="w-full mt-2 py-4 bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.08)]
+                            text-[17px] font-semibold text-[#1f1f1f] font-['Inter']
+                            border-none cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                        >
+                          Cancel
+                        </button>
                       </div>
-                      <p className="text-xl font-bold text-black font-['Nunito']">Add Photo</p>
                     </>
                   )}
                 </div>
@@ -410,7 +479,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
         </div>
       </div>
 
-      {fileInput}
+      {fileInputs}
 
       <style>{`
         @keyframes slideUp {
