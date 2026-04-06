@@ -1,14 +1,16 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../lib/AuthContext'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 export default function ProfilePage({ onBack, onSignOut }) {
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
   const [activeTab, setActiveTab] = useState('recent') // 'recent' | 'bookmarked'
   const [isEditingUsername, setIsEditingUsername] = useState(false)
   const [usernameInput, setUsernameInput] = useState('')
   const [usernameError, setUsernameError] = useState(null)
   const [savingUsername, setSavingUsername] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const inputRef = useRef(null)
   const [myPosts, setMyPosts] = useState([])
   const [loadingPosts, setLoadingPosts] = useState(true)
 
@@ -45,11 +47,14 @@ export default function ProfilePage({ onBack, onSignOut }) {
     fetchMyPosts()
   }, [fetchMyPosts])
 
-  // Save username
+  // Auto-save username on blur or Enter
   const handleSaveUsername = async () => {
     const clean = usernameInput.trim().toLowerCase()
+
+    // No change — just close editor
     if (!clean || clean === profile?.username) {
       setIsEditingUsername(false)
+      setUsernameError(null)
       return
     }
     if (clean.length < 3) {
@@ -63,6 +68,7 @@ export default function ProfilePage({ onBack, onSignOut }) {
 
     setSavingUsername(true)
     setUsernameError(null)
+    setSaveSuccess(false)
     try {
       // Check availability
       const { data: existing } = await supabase
@@ -74,6 +80,7 @@ export default function ProfilePage({ onBack, onSignOut }) {
 
       if (existing) {
         setUsernameError('Username is already taken')
+        setSavingUsername(false)
         return
       }
 
@@ -84,8 +91,14 @@ export default function ProfilePage({ onBack, onSignOut }) {
 
       if (error) throw error
 
-      // Update local profile state by refetching
+      // Refresh profile in AuthContext so the new username propagates everywhere
+      await refreshProfile()
+
+      setSaveSuccess(true)
       setIsEditingUsername(false)
+
+      // Flash success indicator briefly
+      setTimeout(() => setSaveSuccess(false), 1500)
     } catch (err) {
       setUsernameError(err.message)
     } finally {
@@ -142,12 +155,13 @@ export default function ProfilePage({ onBack, onSignOut }) {
           </svg>
         </div>
 
-        {/* Username */}
+        {/* Username — tap to edit, auto-saves on blur or Enter */}
         {isEditingUsername ? (
-          <div className="flex flex-col items-center gap-2 w-full max-w-[260px]">
+          <div className="flex flex-col items-center gap-1.5 w-full max-w-[260px]">
             <div className="flex items-center gap-1">
               <span className="text-gray-400 text-base font-['Inter']">@</span>
               <input
+                ref={inputRef}
                 type="text"
                 value={usernameInput}
                 onChange={(e) => {
@@ -158,50 +172,47 @@ export default function ProfilePage({ onBack, onSignOut }) {
                 autoFocus
                 className="text-base font-['Inter'] text-black border-b-[1.5px] border-dashed border-gray-300
                   outline-none bg-transparent text-center w-[160px] pb-0.5"
+                style={{ fontSize: '16px' }}
+                onBlur={handleSaveUsername}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveUsername()
+                  if (e.key === 'Enter') {
+                    e.target.blur() // triggers onBlur → handleSaveUsername
+                  }
                   if (e.key === 'Escape') {
-                    setIsEditingUsername(false)
                     setUsernameInput(profile?.username || '')
                     setUsernameError(null)
+                    setIsEditingUsername(false)
                   }
                 }}
               />
             </div>
+            {savingUsername && (
+              <span className="text-xs text-gray-400 font-['Inter']">Saving...</span>
+            )}
             {usernameError && (
               <p className="text-xs text-red-500 m-0">{usernameError}</p>
             )}
-            <div className="flex gap-3">
-              <button
-                onClick={handleSaveUsername}
-                disabled={savingUsername}
-                className="text-sm text-black font-medium bg-transparent border-none cursor-pointer
-                  underline underline-offset-2 disabled:opacity-40"
-              >
-                {savingUsername ? 'Saving...' : 'Save'}
-              </button>
-              <button
-                onClick={() => {
-                  setIsEditingUsername(false)
-                  setUsernameInput(profile?.username || '')
-                  setUsernameError(null)
-                }}
-                className="text-sm text-gray-400 bg-transparent border-none cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
           </div>
         ) : (
           <button
-            onClick={() => setIsEditingUsername(true)}
+            onClick={() => {
+              setIsEditingUsername(true)
+              // Focus input after render
+              setTimeout(() => inputRef.current?.focus(), 50)
+            }}
             className="flex items-center gap-1 bg-transparent border-none cursor-pointer p-0"
           >
             <span className="text-gray-400 text-base font-['Inter']">@</span>
             <span className="text-base font-['Inter'] text-black">{displayUsername}</span>
-            <svg className="w-3.5 h-3.5 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
-            </svg>
+            {saveSuccess ? (
+              <svg className="w-3.5 h-3.5 text-green-500 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            ) : (
+              <svg className="w-3.5 h-3.5 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+              </svg>
+            )}
           </button>
         )}
       </div>
