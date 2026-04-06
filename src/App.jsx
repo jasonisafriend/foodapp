@@ -3,6 +3,7 @@ import InfiniteScroll from './components/InfiniteScroll'
 import ShareFoodModal from './components/ShareFoodModal'
 import AuthModal from './components/AuthModal'
 import MenuTray from './components/MenuTray'
+import ProfilePage from './components/ProfilePage'
 import useFoodPosts from './hooks/useFoodPosts'
 import useScrollColor from './hooks/useScrollColor'
 import { useAuth } from './lib/AuthContext'
@@ -11,6 +12,7 @@ import { isSupabaseConfigured } from './lib/supabase'
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState('discover') // 'discover' | 'profile'
   const { foods, loading, addFood } = useFoodPosts()
   const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
@@ -21,6 +23,11 @@ export default function App() {
     } else {
       setIsAuthOpen(true)
     }
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    setCurrentPage('discover')
   }
 
   return (
@@ -79,12 +86,22 @@ export default function App() {
         )}
       </div>
 
+      {/* Profile page overlay (mobile only) */}
+      {currentPage === 'profile' && user && (
+        <ProfilePage
+          onBack={() => setCurrentPage('discover')}
+          onSignOut={handleSignOut}
+        />
+      )}
+
       {/* Mobile bottom menu tray */}
       <MenuTray
         onAdd={handleShareClick}
         onAuth={() => setIsAuthOpen(true)}
         user={user}
-        onSignOut={signOut}
+        onProfile={() => setCurrentPage('profile')}
+        onDiscover={() => setCurrentPage('discover')}
+        currentPage={currentPage}
       />
 
       {/* Auth Modal */}
