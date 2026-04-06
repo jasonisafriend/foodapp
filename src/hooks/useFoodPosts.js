@@ -14,12 +14,25 @@ export default function useFoodPosts() {
     }
 
     try {
-      const { data, error } = await supabase
+      // Try fetching with profile join first
+      let { data, error } = await supabase
         .from('food_posts')
         .select('*, profiles:user_id(username)')
         .order('created_at', { ascending: false })
 
+      // If the join fails (e.g. missing FK relationship), fetch without it
+      if (error) {
+        console.warn('food_posts join query failed, retrying without join:', error.message)
+        const fallback = await supabase
+          .from('food_posts')
+          .select('*')
+          .order('created_at', { ascending: false })
+        data = fallback.data
+        error = fallback.error
+      }
+
       if (error) throw error
+
       // Flatten the joined profile data and merge with mock posts
       const posts = (data || []).map(post => ({
         ...post,
