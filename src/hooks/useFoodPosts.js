@@ -91,8 +91,20 @@ export default function useFoodPosts() {
       throw error
     }
 
-    setFoods(prev => [data, ...prev])
-    return data
+    // Fetch the username for the current user to match the shape of fetched posts
+    let username = null
+    if (user_id) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user_id)
+        .maybeSingle()
+      username = profileData?.username || null
+    }
+
+    const newPost = { ...data, username }
+    setFoods(prev => [newPost, ...prev])
+    return newPost
   }, [])
 
   useEffect(() => {

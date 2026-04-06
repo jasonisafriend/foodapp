@@ -38,12 +38,11 @@ function LocationLink({ food, className, dark }) {
   return <span className={className}>{content}</span>
 }
 
-/** Format price as $ signs */
+/** Display price as actual dollar amount */
 function PriceDisplay({ price }) {
   if (price == null) return null
-  if (price <= 5) return <span className="opacity-80 text-[20px] font-normal">$</span>
-  if (price <= 12) return <span className="opacity-80 text-[20px] font-normal">$$</span>
-  return <span className="opacity-80 text-[20px] font-normal">$$$</span>
+  const formatted = Number.isInteger(price) ? `$${price}` : `$${Number(price).toFixed(2)}`
+  return <span className="opacity-80 text-[20px] font-normal">{formatted}</span>
 }
 
 /** Mobile card info — rendered below the image, matches Figma layout */
