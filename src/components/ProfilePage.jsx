@@ -84,12 +84,18 @@ export default function ProfilePage({ onBack, onSignOut }) {
         return
       }
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('profiles')
         .update({ username: clean })
         .eq('id', user.id)
+        .select('username')
+        .single()
 
       if (error) throw error
+
+      if (!updated) {
+        throw new Error('Update failed — please try again')
+      }
 
       // Refresh profile in AuthContext so the new username propagates everywhere
       await refreshProfile()

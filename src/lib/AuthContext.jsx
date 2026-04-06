@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from './supabase'
 
 const AuthContext = createContext({
@@ -14,9 +14,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const userRef = useRef(null)
 
   // Fetch profile for a given user id
-  const fetchProfile = async (userId) => {
+  const fetchProfile = useCallback(async (userId) => {
     if (!userId || !isSupabaseConfigured()) {
       setProfile(null)
       return
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .single()
     setProfile(data || null)
-  }
+  }, [])
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
@@ -38,6 +39,7 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
+      userRef.current = u
       fetchProfile(u?.id)
       setLoading(false)
     })
@@ -46,6 +48,7 @@ export function AuthProvider({ children }) {
       (_event, session) => {
         const u = session?.user ?? null
         setUser(u)
+        userRef.current = u
         fetchProfile(u?.id)
       },
     )
@@ -115,7 +118,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, signUp, signIn, signOut, refreshProfile: () => fetchProfile(user?.id),
+      user, profile, loading, signUp, signIn, signOut, refreshProfile: () => fetchProfile(userRef.current?.id),
     }}>
       {children}
     </AuthContext.Provider>
