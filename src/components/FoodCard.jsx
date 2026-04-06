@@ -38,36 +38,71 @@ function LocationLink({ food, className, dark }) {
   return <span className={className}>{content}</span>
 }
 
-/** Mobile card info — rendered separately below the image */
+/** Format price as $ signs */
+function PriceDisplay({ price }) {
+  if (price == null) return null
+  if (price <= 5) return <span className="opacity-80 text-[20px] font-normal">$</span>
+  if (price <= 12) return <span className="opacity-80 text-[20px] font-normal">$$</span>
+  return <span className="opacity-80 text-[20px] font-normal">$$$</span>
+}
+
+/** Mobile card info — rendered below the image, matches Figma layout */
 export function CardInfo({ food }) {
   if (!food) return null
 
   return (
-    <div className="px-6 flex flex-col gap-2">
-      <h3 className="font-['Playfair_Display'] italic font-semibold text-black text-[32px] leading-tight">
-        {food.name}
-      </h3>
+    <div className="px-4 flex flex-col gap-3">
+      {/* Title + price row */}
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="font-['Playfair_Display'] italic font-medium text-[#1f1f1f] text-[24px] leading-8 flex-1">
+          {food.name}
+        </h3>
+        <PriceDisplay price={food.price} />
+      </div>
+      {/* Description */}
       {food.description && (
-        <p className="text-black/70 text-sm leading-relaxed line-clamp-3">
+        <p className="text-[#1f1f1f]/90 text-[16px] leading-6 line-clamp-2">
           {food.description}
         </p>
       )}
-      <div className="flex items-center gap-4 text-black/60 text-sm">
-        <LocationLink food={food} className="flex items-center gap-1" dark />
-        {food.price != null && (
-          <span className="flex items-center gap-0.5 font-medium">
-            ${food.price}
-          </span>
-        )}
-      </div>
+      {/* Location */}
+      {food.location && (
+        <div className="flex items-center text-black/80 text-[14px]">
+          <span>📍 {food.location}</span>
+        </div>
+      )}
     </div>
   )
 }
 
-/** Mobile full-bleed image card — no rounded corners, no overlay */
+/** Location pill overlay — sits at bottom of photo */
+function LocationPill({ food }) {
+  const url = getMapsUrl(food)
+  if (!food.location) return null
+
+  const pill = (
+    <div
+      className="flex items-center h-12 px-2 rounded-full text-[14px] text-black/80"
+      style={{ backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+    >
+      📍 {food.location}
+    </div>
+  )
+
+  if (url) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+        {pill}
+      </a>
+    )
+  }
+  return pill
+}
+
+/** Mobile full-bleed image card — no rounded corners, with location pill overlay */
 export function MobileFoodImage({ food, style }) {
   return (
-    <div className="w-full h-full shrink-0" style={style}>
+    <div className="w-full h-full shrink-0 relative" style={style}>
       {food.image_url ? (
         <img
           src={food.image_url}
@@ -77,6 +112,10 @@ export function MobileFoodImage({ food, style }) {
       ) : (
         <div className="w-full h-full bg-[#d9d9d9]" />
       )}
+      {/* Location pill at bottom-right of photo */}
+      <div className="absolute bottom-4 right-4">
+        <LocationPill food={food} />
+      </div>
     </div>
   )
 }

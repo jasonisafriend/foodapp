@@ -194,9 +194,10 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   return (
     <>
       {/* Mobile: full-screen horizontal swipe carousel */}
+      {/* bottom: 72px leaves room for the MenuTray */}
       <div
         className="md:hidden fixed left-0 right-0 flex flex-col"
-        style={{ top: '-200px', bottom: '-200px', paddingTop: '200px', paddingBottom: '200px', zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x', backgroundColor: 'inherit' }}
+        style={{ top: '-200px', bottom: '-200px', paddingTop: '200px', paddingBottom: 'calc(200px + 72px)', zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x', backgroundColor: 'inherit' }}
       >
         {/* Image area — fills available space above card info */}
         <div
@@ -223,7 +224,7 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
           </div>
         </div>
 
-        {/* Card info pinned at bottom — compact to maximize photo height */}
+        {/* Card info between photo and menu tray */}
         <div className="shrink-0 pt-3 pb-2">
           <CardInfo food={activeFood} />
         </div>
