@@ -44,10 +44,14 @@ function getColorAtProgress(progress) {
 }
 
 export default function useScrollColor() {
-  const [bgColor, setBgColor] = useState(COLORS[0])
+  // Start white on mobile, first color on desktop
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const [bgColor, setBgColor] = useState(isMobile ? '#FFFFFF' : COLORS[0])
   const rafRef = useRef(null)
 
   const onScrollProgress = useCallback((progress) => {
+    // Only cycle colors on desktop — mobile stays white
+    if (window.innerWidth < 768) return
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     rafRef.current = requestAnimationFrame(() => {
       setBgColor(getColorAtProgress(progress))

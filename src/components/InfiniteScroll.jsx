@@ -197,7 +197,7 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
       {/* bottom: 72px leaves room for the MenuTray */}
       <div
         className="md:hidden fixed left-0 right-0 flex flex-col"
-        style={{ top: '-200px', bottom: '-200px', paddingTop: '200px', paddingBottom: 'calc(200px + 72px)', zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x', backgroundColor: 'inherit' }}
+        style={{ top: '-200px', bottom: '-200px', paddingTop: '200px', paddingBottom: 'calc(200px + 72px)', zIndex: 1, overscrollBehavior: 'none', touchAction: 'pan-x', backgroundColor: '#FFFFFF' }}
       >
         {/* Image area — fills available space above card info */}
         <div
