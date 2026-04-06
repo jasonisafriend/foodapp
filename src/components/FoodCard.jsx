@@ -75,15 +75,37 @@ export function CardInfo({ food }) {
   )
 }
 
-/** Location pill overlay — sits at bottom of photo */
+/** Glass action style shared by bookmark + location pill */
+const glassStyle = {
+  backgroundColor: 'rgba(255,255,255,0.55)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+}
+
+/** Bookmark icon — glass circle */
+function BookmarkAction() {
+  return (
+    <button
+      className="flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
+      style={glassStyle}
+      aria-label="Bookmark"
+    >
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+      </svg>
+    </button>
+  )
+}
+
+/** Location pill overlay — glass pill with pin emoji + location text */
 function LocationPill({ food }) {
   const url = getMapsUrl(food)
   if (!food.location) return null
 
   const pill = (
     <div
-      className="flex items-center h-12 px-2 rounded-full text-[14px] text-black/80"
-      style={{ backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      className="flex items-center h-12 px-3 rounded-full text-[14px] text-black"
+      style={glassStyle}
     >
       📍 {food.location}
     </div>
@@ -99,7 +121,7 @@ function LocationPill({ food }) {
   return pill
 }
 
-/** Mobile full-bleed image card — no rounded corners, with location pill overlay */
+/** Mobile full-bleed image card — no rounded corners, with action overlays at bottom */
 export function MobileFoodImage({ food, style }) {
   return (
     <div className="w-full h-full shrink-0 relative" style={style}>
@@ -112,8 +134,9 @@ export function MobileFoodImage({ food, style }) {
       ) : (
         <div className="w-full h-full bg-[#d9d9d9]" />
       )}
-      {/* Location pill at bottom-right of photo */}
-      <div className="absolute bottom-4 right-4">
+      {/* Action overlays at bottom of photo — bookmark left, location right */}
+      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+        <BookmarkAction />
         <LocationPill food={food} />
       </div>
     </div>
