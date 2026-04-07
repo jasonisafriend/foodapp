@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import { mockFoodPosts } from '../lib/mockData'
+
+// Fisher-Yates shuffle
+function shuffle(array) {
+  const a = [...array]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 export default function useFoodPosts() {
   const [foods, setFoods] = useState([])
@@ -8,7 +17,7 @@ export default function useFoodPosts() {
 
   const fetchFoods = useCallback(async () => {
     if (!isSupabaseConfigured()) {
-      setFoods(mockFoodPosts)
+      setFoods([])
       setLoading(false)
       return
     }
@@ -18,7 +27,6 @@ export default function useFoodPosts() {
       let { data, error } = await supabase
         .from('food_posts')
         .select('*, profiles:user_id(username)')
-        .order('created_at', { ascending: false })
 
       // If the join fails (e.g. missing FK relationship), fetch without it
       if (error) {
@@ -26,22 +34,21 @@ export default function useFoodPosts() {
         const fallback = await supabase
           .from('food_posts')
           .select('*')
-          .order('created_at', { ascending: false })
         data = fallback.data
         error = fallback.error
       }
 
       if (error) throw error
 
-      // Flatten the joined profile data and merge with mock posts
+      // Flatten the joined profile data and shuffle for random order each load
       const posts = (data || []).map(post => ({
         ...post,
         username: post.profiles?.username || null,
       }))
-      setFoods([...posts, ...mockFoodPosts])
+      setFoods(shuffle(posts))
     } catch (err) {
       console.error('Error fetching food posts:', err)
-      setFoods(mockFoodPosts)
+      setFoods([])
     } finally {
       setLoading(false)
     }
