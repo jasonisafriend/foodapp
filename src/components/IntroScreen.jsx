@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { HandSwipeLeft } from '@phosphor-icons/react'
+import { HandSwipeLeft, Pause, Play } from '@phosphor-icons/react'
 
 // NOTE: These Figma-hosted image URLs expire ~7 days after fetch.
 // Before shipping, download each image and replace with /intro/*.jpg paths.
@@ -20,13 +20,14 @@ const BG_IMAGES = [
   'https://www.figma.com/api/mcp/asset/cb32e979-2b3f-4afc-bcbc-a6508ef69d08',
 ]
 
-const FRAME_MS = 200 // 0.2s per photo
+const FRAME_MS = 300 // 0.3s per photo
 const STORAGE_KEY = 'foe_intro_seen_v1'
 
 export default function IntroScreen({ onDismiss }) {
   const [bgIndex, setBgIndex] = useState(0)
   const [dragX, setDragX] = useState(0)
   const [isDismissing, setIsDismissing] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
 
@@ -38,13 +39,14 @@ export default function IntroScreen({ onDismiss }) {
     })
   }, [])
 
-  // Cycle BG images every 200ms
+  // Cycle BG images on a fixed cadence (pauseable)
   useEffect(() => {
+    if (isPaused) return
     const id = setInterval(() => {
       setBgIndex((i) => (i + 1) % BG_IMAGES.length)
     }, FRAME_MS)
     return () => clearInterval(id)
-  }, [])
+  }, [isPaused])
 
   const dismiss = () => {
     if (isDismissing) return
@@ -117,6 +119,25 @@ export default function IntroScreen({ onDismiss }) {
 
       {/* Contrast overlay */}
       <div className="absolute inset-0 bg-black/60" />
+
+      {/* Pause / play toggle — bottom right */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          setIsPaused((p) => !p)
+        }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        aria-label={isPaused ? 'Resume background animation' : 'Pause background animation'}
+        className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-white/15 backdrop-blur-md
+          flex items-center justify-center border-none cursor-pointer text-white/90 p-0"
+      >
+        {isPaused
+          ? <Play size={20} weight="fill" />
+          : <Pause size={20} weight="fill" />}
+      </button>
 
       {/* Foreground: logo, copy, hand icon */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
