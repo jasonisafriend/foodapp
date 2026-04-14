@@ -9,12 +9,26 @@ function SearchIcon() {
   )
 }
 
-/** Mobile top bar — search, Near Me/New chips, Tags link. UI-only for now. */
-export default function TopBar() {
+/**
+ * Mobile top bar — search, Near Me/New chips, Tags menu with filter.
+ *
+ * Props:
+ *   selectedTag   — currently-selected tag slug (no `#`) or null
+ *   onSelectTag   — (tag: string | null) => void
+ */
+export default function TopBar({ selectedTag = null, onSelectTag }) {
   const [activeChip, setActiveChip] = useState('near') // 'near' | 'new'
   const [tagsOpen, setTagsOpen] = useState(false)
 
-  const tags = FOOD_TAGS.map(withHash)
+  const pickTag = (tag) => {
+    onSelectTag?.(tag)
+    setTagsOpen(false)
+  }
+
+  const clearTag = () => {
+    onSelectTag?.(null)
+    setTagsOpen(false)
+  }
 
   return (
     <>
@@ -51,16 +65,18 @@ export default function TopBar() {
           </button>
         </div>
 
-        {/* Tags link */}
+        {/* Tags link — shows selected tag when active */}
         <button
           onClick={() => setTagsOpen(true)}
-          className="bg-transparent border-none cursor-pointer p-0 font-['Nunito'] font-normal text-[14px] leading-5 text-[#1f1f1f]"
+          className={`bg-transparent border-none cursor-pointer p-0 font-['Nunito'] text-[14px] leading-5 whitespace-nowrap ${
+            selectedTag ? 'text-black font-bold' : 'text-[#1f1f1f] font-normal'
+          }`}
         >
-          Tags
+          {selectedTag ? withHash(selectedTag) : 'Tags'}
         </button>
       </div>
 
-      {/* Tags bottom sheet — UI only */}
+      {/* Tags bottom sheet */}
       {tagsOpen && (
         <div
           className="md:hidden fixed inset-0 z-50 flex items-end bg-black/40"
@@ -71,28 +87,54 @@ export default function TopBar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-['Playfair_Display'] italic font-medium text-[22px] text-[#1f1f1f]">
+              <h3 className="font-['Playfair_Display'] italic font-medium text-[22px] text-[#1f1f1f] m-0">
                 Browse by tag
               </h3>
-              <button
-                onClick={() => setTagsOpen(false)}
-                aria-label="Close"
-                className="bg-transparent border-none cursor-pointer p-1"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={1.75}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 pb-4">
-              {tags.map((tag) => (
+              <div className="flex items-center gap-3">
+                {selectedTag && (
+                  <button
+                    onClick={clearTag}
+                    className="text-[13px] font-['Inter'] text-[#1f1f1f] underline underline-offset-2
+                      bg-transparent border-none cursor-pointer p-0"
+                  >
+                    Clear filter
+                  </button>
+                )}
                 <button
-                  key={tag}
-                  className="px-3 py-1.5 rounded-full bg-[#f5f5f5] text-[#1f1f1f] text-[14px] font-['Nunito'] border-none cursor-pointer"
+                  onClick={() => setTagsOpen(false)}
+                  aria-label="Close"
+                  className="bg-transparent border-none cursor-pointer p-1"
                 >
-                  {tag}
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              ))}
+              </div>
+            </div>
+
+            {selectedTag && (
+              <p className="text-[13px] text-[#78788f] font-['Inter'] -mt-2 mb-3">
+                Filtering by {withHash(selectedTag)}. Tap another tag to switch.
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 pb-4">
+              {FOOD_TAGS.map((tag) => {
+                const active = tag === selectedTag
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => pickTag(tag)}
+                    className={`px-3 py-1.5 rounded-full text-[14px] font-['Nunito'] border-none cursor-pointer transition-colors ${
+                      active
+                        ? 'bg-black text-white font-bold'
+                        : 'bg-[#f5f5f5] text-[#1f1f1f] font-normal'
+                    }`}
+                  >
+                    {withHash(tag)}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>

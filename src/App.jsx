@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import IntroScreen from './components/IntroScreen'
 import InfiniteScroll from './components/InfiniteScroll'
 import ShareFoodModal from './components/ShareFoodModal'
@@ -19,7 +19,14 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(true)
   const [selectedPost, setSelectedPost] = useState(null) // { food, source: 'profile-recent' | 'profile-bookmarked' }
   const [profileRefreshKey, setProfileRefreshKey] = useState(0)
+  const [selectedTag, setSelectedTag] = useState(null) // canonical tag slug or null
   const { foods, loading, addFood, updateFood, deleteFood } = useFoodPosts()
+
+  // Client-side tag filter over the already-fetched feed.
+  const visibleFoods = useMemo(() => {
+    if (!selectedTag) return foods
+    return foods.filter((f) => Array.isArray(f.tags) && f.tags.includes(selectedTag))
+  }, [foods, selectedTag])
   const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
 
@@ -82,7 +89,12 @@ export default function App() {
       </div>
 
       {/* Mobile top bar — only on discover */}
-      {currentPage === 'discover' && <TopBar />}
+      {currentPage === 'discover' && (
+        <TopBar
+          selectedTag={selectedTag}
+          onSelectTag={setSelectedTag}
+        />
+      )}
 
       {/* Food cards — on mobile the carousel is fixed/full-screen, on desktop flows normally */}
       <div className="mt-0 md:mt-[56px]">
@@ -90,8 +102,21 @@ export default function App() {
           <div className="flex items-center justify-center h-[400px] md:h-[523px]">
             <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : visibleFoods.length === 0 && selectedTag ? (
+          <div className="flex flex-col items-center justify-center h-[400px] md:h-[523px] px-6 text-center">
+            <p className="font-['Playfair_Display'] italic text-[22px] text-[#1f1f1f] m-0">
+              No posts tagged #{selectedTag} yet
+            </p>
+            <button
+              onClick={() => setSelectedTag(null)}
+              className="mt-3 text-[14px] text-[#1f1f1f] underline underline-offset-2
+                bg-transparent border-none cursor-pointer font-['Inter']"
+            >
+              Clear filter
+            </button>
+          </div>
         ) : (
-          <InfiniteScroll foods={foods} onScrollProgress={onScrollProgress} />
+          <InfiniteScroll foods={visibleFoods} onScrollProgress={onScrollProgress} />
         )}
       </div>
 

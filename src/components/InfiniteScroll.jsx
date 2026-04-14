@@ -21,9 +21,10 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   const mobileTotalSwiped = useRef(0)
   const prevFoodsLength = useRef(foods.length)
 
-  // When a new post is added (foods array grows), reset to index 0
+  // Reset to the first card whenever the feed list changes size (new post,
+  // filter applied/cleared, etc.) so we never land on a now-missing slot.
   useEffect(() => {
-    if (foods.length > prevFoodsLength.current) {
+    if (foods.length !== prevFoodsLength.current) {
       setVisualIndex(1)
       mobileTotalSwiped.current = 0
     }
