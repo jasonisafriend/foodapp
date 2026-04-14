@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ArrowBendRightUp } from '@phosphor-icons/react'
 
 function getMapsUrl(food) {
   if (food.maps_url) return food.maps_url
@@ -107,20 +108,7 @@ function LocationGoAction({ food }) {
       style={glassStyle}
       aria-label={`Open ${food.location} in Maps`}
     >
-      {/* Phosphor ArrowBendRightUp (regular) */}
-      <svg
-        className="w-6 h-6"
-        viewBox="0 0 256 256"
-        fill="none"
-        stroke="black"
-        strokeWidth="16"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M40 208 H 144 a 56 56 0 0 0 56 -56 V 72" />
-        <polyline points="160 112 200 72 240 112" />
-      </svg>
+      <ArrowBendRightUp size={24} weight="regular" color="black" />
     </button>
   )
 
