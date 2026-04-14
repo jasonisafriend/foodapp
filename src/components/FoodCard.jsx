@@ -107,9 +107,19 @@ function LocationGoAction({ food }) {
       style={glassStyle}
       aria-label={`Open ${food.location} in Maps`}
     >
-      {/* Phosphor ArrowUpRight (regular) */}
-      <svg className="w-6 h-6" fill="black" viewBox="0 0 256 256" aria-hidden="true">
-        <path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z" />
+      {/* Phosphor ArrowBendRightUp (regular) */}
+      <svg
+        className="w-6 h-6"
+        viewBox="0 0 256 256"
+        fill="none"
+        stroke="black"
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M40 208 H 144 a 56 56 0 0 0 56 -56 V 72" />
+        <polyline points="160 112 200 72 240 112" />
       </svg>
     </button>
   )
