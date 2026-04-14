@@ -165,15 +165,18 @@ export default function App() {
         />
       )}
 
-      {/* Mobile bottom menu tray */}
-      <MenuTray
-        onAdd={handleShareClick}
-        onAuth={() => setIsAuthOpen(true)}
-        user={user}
-        onProfile={handleProfile}
-        onDiscover={handleDiscover}
-        currentPage={currentPage}
-      />
+      {/* Mobile bottom menu tray — hidden while the Add Food flow is open
+          so it doesn't cover the Next / Post buttons in that modal. */}
+      {!isModalOpen && (
+        <MenuTray
+          onAdd={handleShareClick}
+          onAuth={() => setIsAuthOpen(true)}
+          user={user}
+          onProfile={handleProfile}
+          onDiscover={handleDiscover}
+          currentPage={currentPage}
+        />
+      )}
 
       {/* Auth Modal */}
       {isAuthOpen && (
