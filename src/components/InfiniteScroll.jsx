@@ -7,7 +7,13 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   const totalScrolled = useRef(0)
 
   // Mobile swipe state
-  const [currentIndex, setCurrentIndex] = useState(0)
+  // visualIndex runs 0..N+1 over the extended track [last, ...foods, first].
+  // visualIndex === 1 corresponds to foods[0]; wrapping animates past the
+  // edge then silently snaps back to the real slot so a full-carousel
+  // rewind looks like a single-card swipe.
+  const N = foods.length
+  const [visualIndex, setVisualIndex] = useState(1)
+  const currentIndex = N > 0 ? ((visualIndex - 1 + N) % N) : 0
   const touchStart = useRef(null)
   const touchDelta = useRef(0)
   const mobileTrackRef = useRef(null)
@@ -18,11 +24,14 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
   // When a new post is added (foods array grows), reset to index 0
   useEffect(() => {
     if (foods.length > prevFoodsLength.current) {
-      setCurrentIndex(0)
+      setVisualIndex(1)
       mobileTotalSwiped.current = 0
     }
     prevFoodsLength.current = foods.length
   }, [foods.length])
+
+  // Extended mobile track: prepend last card, append first card for seamless wrap
+  const mobileTrackFoods = N > 0 ? [foods[N - 1], ...foods, foods[0]] : []
 
   // Duplicate cards for seamless horizontal wrapping (desktop)
   const displayFoods = foods.length > 0 ? [...foods, ...foods, ...foods] : []
@@ -76,27 +85,41 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     onScrollProgress(progress)
   }, [currentIndex, onScrollProgress, foods.length])
 
-  // Mobile: snap track to current index (no animation on mount)
-  const snapToIndex = useCallback((index, animate = true) => {
+  // Mobile: snap track to a visual-index position
+  const snapToVisual = useCallback((vIndex, animate = true) => {
     const track = mobileTrackRef.current
     if (!track) return
     const vw = window.innerWidth
-    const offset = index * vw
+    const offset = vIndex * vw
     track.style.transition = animate ? 'transform 0.5s cubic-bezier(0.22, 0.68, 0, 1.0)' : 'none'
     track.style.transform = `translateX(-${offset}px)`
   }, [])
 
-  // Snap on index change
+  // Snap on visualIndex change. First render snaps without animation;
+  // later, if we landed on a duplicate (0 or N+1), wait for the transition
+  // to finish, then jump back to the real slot with no animation — so
+  // wrap-around feels identical to a normal swipe.
+  const firstRender = useRef(true)
   useEffect(() => {
-    snapToIndex(currentIndex, true)
-  }, [currentIndex, snapToIndex])
+    snapToVisual(visualIndex, !firstRender.current)
+    firstRender.current = false
+    if (N === 0) return
+    if (visualIndex === 0 || visualIndex === N + 1) {
+      const realIndex = visualIndex === 0 ? N : 1
+      const t = setTimeout(() => {
+        setVisualIndex(realIndex)
+        snapToVisual(realIndex, false)
+      }, 500)
+      return () => clearTimeout(t)
+    }
+  }, [visualIndex, N, snapToVisual])
 
   // Snap on resize
   useEffect(() => {
-    const handleResize = () => snapToIndex(currentIndex, false)
+    const handleResize = () => snapToVisual(visualIndex, false)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [currentIndex, snapToIndex])
+  }, [visualIndex, snapToVisual])
 
   // Mobile touch handlers
   const touchStartY = useRef(null)
@@ -120,9 +143,9 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
     const track = mobileTrackRef.current
     if (!track) return
     const vw = window.innerWidth
-    const offset = currentIndex * vw - touchDelta.current
+    const offset = visualIndex * vw - touchDelta.current
     track.style.transform = `translateX(-${offset}px)`
-  }, [currentIndex])
+  }, [visualIndex])
 
   // Helper: get Maps URL for a food item
   const getMapsUrl = useCallback((food) => {
@@ -152,30 +175,24 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
       if (url) {
         window.open(url, '_blank')
       }
-      // Snap back to current position
-      snapToIndex(currentIndex, true)
+      // Snap back to current visual position
+      snapToVisual(visualIndex, true)
       return
     }
 
-    let newIndex = currentIndex
+    let newVisual = visualIndex
     if (deltaX < -threshold) {
-      newIndex = currentIndex + 1
+      newVisual = visualIndex + 1
     } else if (deltaX > threshold) {
-      newIndex = currentIndex - 1
+      newVisual = visualIndex - 1
     }
 
-    // Wrap around
-    if (foods.length > 0) {
-      if (newIndex < 0) newIndex = foods.length - 1
-      else if (newIndex >= foods.length) newIndex = 0
-    }
-
-    if (newIndex !== currentIndex) {
+    if (newVisual !== visualIndex) {
       mobileTotalSwiped.current += 1
     }
 
     animating.current = true
-    setCurrentIndex(newIndex)
+    setVisualIndex(newVisual)
 
     // Update color on swipe — slight delay so the photo settles first
     if (onScrollProgress && foods.length > 0) {
@@ -185,8 +202,9 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
       }, 150)
     }
 
-    setTimeout(() => { animating.current = false }, 500)
-  }, [currentIndex, foods, foods.length, onScrollProgress, getMapsUrl, snapToIndex])
+    // Allow next touch a bit after the silent-snap-back completes (~500+50ms)
+    setTimeout(() => { animating.current = false }, 560)
+  }, [visualIndex, currentIndex, foods, foods.length, onScrollProgress, getMapsUrl, snapToVisual])
 
   if (foods.length === 0) {
     return (
@@ -220,11 +238,11 @@ export default function InfiniteScroll({ foods, onScrollProgress }) {
           <div
             ref={mobileTrackRef}
             className="flex h-full will-change-transform"
-            style={{ width: `${foods.length * 100}vw` }}
+            style={{ width: `${mobileTrackFoods.length * 100}vw` }}
           >
-            {foods.map((food) => (
+            {mobileTrackFoods.map((food, i) => (
               <div
-                key={food.id}
+                key={`${food.id}-${i}`}
                 className="h-full"
                 style={{ width: '100vw', minWidth: '100vw' }}
               >
