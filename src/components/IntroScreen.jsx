@@ -131,13 +131,12 @@ export default function IntroScreen({ onDismiss }) {
           draggable={false}
         />
 
-        {/* Copy — fades in after the logo has settled. */}
-        <p className="mt-8 font-['Nunito'] font-bold text-white text-[20px] leading-6 text-center max-w-[240px] foe-fade-in foe-fade-copy">
+        {/* Copy + hand swipe — paired, fade in together after the logo. */}
+        <p className="mt-8 font-['Nunito'] font-bold text-white text-[20px] leading-6 text-center max-w-[240px] foe-fade-in foe-fade-subhead">
           Swipe to see what&rsquo;s worth eating near you
         </p>
 
-        {/* Hand swipe icon — appears last, then loops. */}
-        <div className="mt-6 relative w-full h-10 overflow-hidden foe-fade-in foe-fade-hand">
+        <div className="mt-6 relative w-full h-10 overflow-hidden foe-fade-in foe-fade-subhead">
           <div className="foe-hand-swipe absolute top-0 text-[#f4ff20]">
             <HandSwipeLeft size={40} weight="regular" />
           </div>
@@ -173,12 +172,15 @@ export default function IntroScreen({ onDismiss }) {
         }
         .foe-hand-swipe {
           animation: foe-hand-swipe-kf 3.2s ease-in-out infinite;
-          /* Don't start looping until the container has faded in */
-          animation-delay: 1800ms;
+          /* Wait for the container to finish fading in, then start the loop.
+             `backwards` applies the 0% keyframe (off-screen right, opacity 0)
+             during the delay, preventing a flash at the default left:0. */
+          animation-delay: 750ms;
+          animation-fill-mode: backwards;
           will-change: left, opacity;
         }
 
-        /* Smooth staged entrance for logo / copy / hand-container. */
+        /* Smooth staged entrance for logo then paired subhead + hand. */
         @keyframes foe-fade-in-kf {
           from { opacity: 0; transform: translateY(6px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -186,13 +188,12 @@ export default function IntroScreen({ onDismiss }) {
         .foe-fade-in {
           opacity: 0;
           animation-name: foe-fade-in-kf;
-          animation-duration: 600ms;
+          animation-duration: 500ms;
           animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
           animation-fill-mode: forwards;
         }
-        .foe-fade-logo { animation-delay: 150ms; }
-        .foe-fade-copy { animation-delay: 900ms; }
-        .foe-fade-hand { animation-delay: 1700ms; }
+        .foe-fade-logo    { animation-delay: 100ms; }
+        .foe-fade-subhead { animation-delay: 600ms; }
       `}</style>
     </div>
   )
