@@ -33,7 +33,7 @@ export default function TopBar({ selectedTag = null, onSelectTag }) {
   return (
     <>
       <div
-        className="md:hidden fixed top-0 left-0 right-0 h-10 bg-white grid items-center px-4 py-2.5 z-20"
+        className="md:hidden fixed top-0 left-0 right-0 bg-white grid items-center px-4 pt-2.5 pb-[14px] z-20"
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         {/* Search icon — disabled placeholder until search is wired up */}
@@ -51,7 +51,7 @@ export default function TopBar({ selectedTag = null, onSelectTag }) {
             onClick={() => setActiveChip('near')}
             className={`min-w-12 px-3 py-1 rounded-[20px] border-none cursor-pointer text-[14px] leading-5 whitespace-nowrap transition-colors ${
               activeChip === 'near'
-                ? "bg-black text-white font-['Nunito'] font-bold"
+                ? "bg-[#FFCBDA] text-black font-['Nunito'] font-bold"
                 : "bg-white text-[#1f1f1f] font-['Nunito'] font-normal"
             }`}
           >
@@ -61,7 +61,7 @@ export default function TopBar({ selectedTag = null, onSelectTag }) {
             onClick={() => setActiveChip('new')}
             className={`min-w-12 px-3 py-1 rounded-[20px] border-none cursor-pointer text-[14px] leading-5 whitespace-nowrap transition-colors ${
               activeChip === 'new'
-                ? "bg-black text-white font-['Nunito'] font-bold"
+                ? "bg-[#FFCBDA] text-black font-['Nunito'] font-bold"
                 : "bg-white text-[#1f1f1f] font-['Nunito'] font-normal"
             }`}
           >

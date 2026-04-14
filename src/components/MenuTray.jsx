@@ -27,7 +27,7 @@ export default function MenuTray({ onAdd, onAuth, user, onProfile, onDiscover, c
         onClick={onAdd}
         className="flex flex-col items-center gap-0.5 w-14 bg-transparent border-none cursor-pointer p-0"
       >
-        <div className="w-7 h-7 bg-[#f4ff20] rounded-lg flex items-center justify-center">
+        <div className="w-7 h-7 bg-[#FFCBDA] rounded-lg flex items-center justify-center">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
