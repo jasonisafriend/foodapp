@@ -51,9 +51,6 @@ export default function IntroScreen({ onDismiss }) {
     setIsDismissing(true)
     // Allow exit animation to play before unmounting
     setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, '1')
-      } catch { /* ignore */ }
       onDismiss?.()
     }, 300)
   }
@@ -136,25 +133,25 @@ export default function IntroScreen({ onDismiss }) {
           Swipe to see what&rsquo;s actually worth eating near you
         </p>
 
-        {/* Hand swipe icon — animates right to left on loop */}
-        <div className="mt-6 w-full flex justify-end pr-8">
-          <div className="foe-hand-swipe text-[#f4ff20]">
-            <HandSwipeLeft size={40} weight="fill" />
+        {/* Hand swipe icon — animates right to left on loop, wider travel */}
+        <div className="mt-6 relative w-full h-10 overflow-hidden">
+          <div className="foe-hand-swipe absolute top-0 text-[#f4ff20]">
+            <HandSwipeLeft size={40} weight="regular" />
           </div>
         </div>
       </div>
 
       <style>{`
         @keyframes foe-hand-swipe-kf {
-          0%   { transform: translateX(40px); opacity: 0; }
-          15%  { transform: translateX(32px); opacity: 1; }
-          70%  { transform: translateX(-60px); opacity: 1; }
-          85%  { transform: translateX(-72px); opacity: 0; }
-          100% { transform: translateX(-72px); opacity: 0; }
+          0%   { left: calc(100% - 56px); opacity: 0; }
+          12%  { left: calc(100% - 64px); opacity: 1; }
+          80%  { left: 16px; opacity: 1; }
+          92%  { left: 8px; opacity: 0; }
+          100% { left: 8px; opacity: 0; }
         }
         .foe-hand-swipe {
-          animation: foe-hand-swipe-kf 1.6s ease-in-out infinite;
-          will-change: transform, opacity;
+          animation: foe-hand-swipe-kf 2.4s ease-in-out infinite;
+          will-change: left, opacity;
         }
       `}</style>
     </div>
