@@ -32,17 +32,21 @@ export default function TopBar({ selectedTag = null, onSelectTag }) {
 
   return (
     <>
-      <div className="md:hidden fixed top-0 left-0 right-0 h-10 bg-white flex items-center justify-between px-4 py-2.5 z-20">
-        {/* Search icon */}
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 h-10 bg-white grid items-center px-4 py-2.5 z-20"
+        style={{ gridTemplateColumns: '1fr auto 1fr' }}
+      >
+        {/* Search icon — disabled placeholder until search is wired up */}
         <button
-          aria-label="Search"
-          className="border-none bg-transparent p-0 cursor-pointer flex items-center justify-center"
+          aria-label="Search (coming soon)"
+          disabled
+          className="justify-self-start border-none bg-transparent p-0 cursor-not-allowed flex items-center justify-center opacity-20"
         >
           <SearchIcon />
         </button>
 
-        {/* Segmented control: Near Me / New */}
-        <div className="flex gap-3 items-center">
+        {/* Segmented control: Near Me / New — always centered */}
+        <div className="flex gap-3 items-center justify-self-center">
           <button
             onClick={() => setActiveChip('near')}
             className={`min-w-12 px-3 py-1 rounded-[20px] border-none cursor-pointer text-[14px] leading-5 whitespace-nowrap transition-colors ${
@@ -68,7 +72,7 @@ export default function TopBar({ selectedTag = null, onSelectTag }) {
         {/* Tags link — shows selected tag when active */}
         <button
           onClick={() => setTagsOpen(true)}
-          className={`bg-transparent border-none cursor-pointer p-0 font-['Nunito'] text-[14px] leading-5 whitespace-nowrap ${
+          className={`justify-self-end bg-transparent border-none cursor-pointer p-0 font-['Nunito'] text-[14px] leading-5 whitespace-nowrap ${
             selectedTag ? 'text-black font-bold' : 'text-[#1f1f1f] font-normal'
           }`}
         >
