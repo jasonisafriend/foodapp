@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import IntroScreen, { hasSeenIntro } from './components/IntroScreen'
 import InfiniteScroll from './components/InfiniteScroll'
 import ShareFoodModal from './components/ShareFoodModal'
 import AuthModal from './components/AuthModal'
@@ -14,6 +15,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('discover') // 'discover' | 'profile'
+  const [showIntro, setShowIntro] = useState(() => !hasSeenIntro())
   const { foods, loading, addFood } = useFoodPosts()
   const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
@@ -112,6 +114,9 @@ export default function App() {
       {isAuthOpen && (
         <AuthModal onClose={() => setIsAuthOpen(false)} />
       )}
+
+      {/* Intro screen (mobile, first visit only) */}
+      {showIntro && <IntroScreen onDismiss={() => setShowIntro(false)} />}
 
       {/* Share Food Modal */}
       <ShareFoodModal
