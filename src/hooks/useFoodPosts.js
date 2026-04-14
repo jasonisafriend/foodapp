@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { sanitizeTags } from '../lib/tags'
 
 // Fisher-Yates shuffle
 function shuffle(array) {
@@ -54,7 +55,9 @@ export default function useFoodPosts() {
     }
   }, [])
 
-  const addFood = useCallback(async ({ name, description, location, price, mapsUrl, photo, photoPreview }) => {
+  const addFood = useCallback(async ({ name, description, location, price, mapsUrl, tags, photo, photoPreview }) => {
+    const cleanTags = sanitizeTags(tags)
+
     if (!isSupabaseConfigured()) {
       // Add to local state with mock behavior
       const newPost = {
@@ -64,6 +67,7 @@ export default function useFoodPosts() {
         location,
         price,
         maps_url: mapsUrl || null,
+        tags: cleanTags,
         image_url: photoPreview || null,
         created_at: new Date().toISOString(),
       }
@@ -98,7 +102,7 @@ export default function useFoodPosts() {
     const user_id = session?.user?.id || null
 
     // Insert the food post
-    const insertPayload = { name, description, location, price, image_url, maps_url: mapsUrl || null, user_id }
+    const insertPayload = { name, description, location, price, image_url, maps_url: mapsUrl || null, tags: cleanTags, user_id }
 
     const { data, error } = await supabase
       .from('food_posts')
@@ -128,9 +132,14 @@ export default function useFoodPosts() {
   }, [])
 
   const updateFood = useCallback(async (id, patch) => {
+    // If the caller supplied tags, coerce them against the canonical list.
+    const safePatch = 'tags' in (patch || {})
+      ? { ...patch, tags: sanitizeTags(patch.tags) }
+      : patch
+
     if (!isSupabaseConfigured()) {
-      setFoods(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)))
-      return { id, ...patch }
+      setFoods(prev => prev.map(f => (f.id === id ? { ...f, ...safePatch } : f)))
+      return { id, ...safePatch }
     }
 
     const { data: { session } } = await supabase.auth.getSession()
@@ -139,7 +148,7 @@ export default function useFoodPosts() {
 
     const { data, error } = await supabase
       .from('food_posts')
-      .update(patch)
+      .update(safePatch)
       .eq('id', id)
       .eq('user_id', uid)
       .select()

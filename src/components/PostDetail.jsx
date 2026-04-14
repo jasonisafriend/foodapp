@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ArrowBendRightUp, ArrowLeft, Pencil } from '@phosphor-icons/react'
+import TagPicker from './TagPicker'
+import { sanitizeTags, withHash } from '../lib/tags'
 
 /** Glass style shared with FoodCard actions */
 const glassStyle = {
@@ -41,6 +43,7 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
   const [price, setPrice] = useState(food?.price != null ? String(food.price) : '')
   const [mapsUrl, setMapsUrl] = useState(food?.maps_url || '')
   const [showMapsField, setShowMapsField] = useState(!!food?.maps_url)
+  const [tags, setTags] = useState(sanitizeTags(food?.tags))
 
   const nameRef = useRef(null)
 
@@ -52,6 +55,7 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
     setPrice(food?.price != null ? String(food.price) : '')
     setMapsUrl(food?.maps_url || '')
     setShowMapsField(!!food?.maps_url)
+    setTags(sanitizeTags(food?.tags))
     setIsEditing(false)
     setError(null)
   }, [food?.id])
@@ -85,12 +89,18 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
 
   if (!food) return null
 
+  const origTags = sanitizeTags(food.tags)
+  const tagsChanged =
+    tags.length !== origTags.length ||
+    tags.some((t, i) => t !== origTags[i])
+
   const isDirty =
     name !== (food.name || '') ||
     description !== (food.description || '') ||
     location !== (food.location || '') ||
     price !== (food.price != null ? String(food.price) : '') ||
-    mapsUrl !== (food.maps_url || '')
+    mapsUrl !== (food.maps_url || '') ||
+    tagsChanged
 
   const handleBack = () => {
     if (isEditing && isDirty) {
@@ -114,6 +124,7 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
         location: location.trim() || null,
         price: price === '' ? null : Number(price),
         maps_url: mapsUrl.trim() || null,
+        tags: sanitizeTags(tags),
       }
       await onSave?.(patch)
       setIsEditing(false)
@@ -219,6 +230,19 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
             {food.location && (
               <div className="flex items-center text-black/80 text-[14px]">
                 <span>📍 {food.location}</span>
+              </div>
+            )}
+
+            {Array.isArray(food.tags) && food.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {sanitizeTags(food.tags).map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2.5 py-1 rounded-full bg-[#f5f5f5] text-[#1f1f1f] text-[13px] font-['Nunito']"
+                  >
+                    {withHash(tag)}
+                  </span>
+                ))}
               </div>
             )}
 
@@ -346,6 +370,14 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
                   style={{ fontSize: '16px' }}
                 />
               </div>
+            </div>
+
+            {/* TAGS (OPTIONAL) */}
+            <div className="flex flex-col gap-2 w-full">
+              <label className="text-sm text-[#23232e] font-['Inter'] tracking-wide">
+                TAGS <span className="text-[#78788f] font-normal">(optional)</span>
+              </label>
+              <TagPicker value={tags} onChange={setTags} />
             </div>
 
             {/* Delete at the very bottom — also available in edit mode for convenience */}

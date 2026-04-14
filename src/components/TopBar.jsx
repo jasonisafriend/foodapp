@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FOOD_TAGS, withHash } from '../lib/tags'
 
 function SearchIcon() {
   return (
@@ -13,28 +14,7 @@ export default function TopBar() {
   const [activeChip, setActiveChip] = useState('near') // 'near' | 'new'
   const [tagsOpen, setTagsOpen] = useState(false)
 
-  const tags = [
-    '#pizza',
-    '#chinese',
-    '#mexican',
-    '#japanese',
-    '#korean',
-    '#italian',
-    '#sandwich',
-    '#burger',
-    '#tacos',
-    '#bbq',
-    '#thai',
-    '#vietnamese',
-    '#indian',
-    '#halal',
-    '#bakery',
-    '#dessert',
-    '#coffee',
-    '#breakfast',
-    '#seafood',
-    '#salad',
-  ]
+  const tags = FOOD_TAGS.map(withHash)
 
   return (
     <>

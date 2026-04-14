@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import ImageCropper from './ImageCropper'
 import compressImage from '../lib/compressImage'
+import TagPicker from './TagPicker'
+import { sanitizeTags } from '../lib/tags'
 
 /**
  * Two-step Add Food flow:
@@ -43,6 +45,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
   const [price, setPrice] = useState('')
   const [mapsUrl, setMapsUrl] = useState('')
   const [showMapsField, setShowMapsField] = useState(false)
+  const [tags, setTags] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const nameRef = useRef(null)
@@ -69,6 +72,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
       setPrice('')
       setMapsUrl('')
       setShowMapsField(false)
+      setTags([])
       setError(null)
     }
   }, [isOpen])
@@ -118,6 +122,7 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
         location: location.trim(),
         price: price ? parseFloat(price) : null,
         mapsUrl: mapsUrl.trim() || null,
+        tags: sanitizeTags(tags),
         photo,
         photoPreview,
       })
@@ -386,6 +391,14 @@ export default function ShareFoodModal({ isOpen, onClose, onSubmit }) {
                         style={{ fontSize: '16px' }}
                       />
                     </div>
+                  </div>
+
+                  {/* TAGS (OPTIONAL) */}
+                  <div className="flex flex-col gap-2 w-full">
+                    <label className="text-sm text-[#23232e] font-['Inter'] tracking-wide">
+                      TAGS <span className="text-[#78788f] font-normal">(optional)</span>
+                    </label>
+                    <TagPicker value={tags} onChange={setTags} />
                   </div>
 
                   {/* Post button */}
