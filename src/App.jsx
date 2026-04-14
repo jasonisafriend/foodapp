@@ -3,6 +3,7 @@ import InfiniteScroll from './components/InfiniteScroll'
 import ShareFoodModal from './components/ShareFoodModal'
 import AuthModal from './components/AuthModal'
 import MenuTray from './components/MenuTray'
+import TopBar from './components/TopBar'
 import ProfilePage from './components/ProfilePage'
 import useFoodPosts from './hooks/useFoodPosts'
 import useScrollColor from './hooks/useScrollColor'
@@ -74,6 +75,9 @@ export default function App() {
           className="h-[90px] lg:h-[112px] w-auto"
         />
       </div>
+
+      {/* Mobile top bar — only on discover */}
+      {currentPage === 'discover' && <TopBar />}
 
       {/* Food cards — on mobile the carousel is fixed/full-screen, on desktop flows normally */}
       <div className="mt-0 md:mt-[56px]">

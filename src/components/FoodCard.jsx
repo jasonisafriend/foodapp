@@ -96,31 +96,34 @@ function BookmarkAction() {
   )
 }
 
-/** Location pill overlay — glass pill with pin emoji + location text */
-function LocationPill({ food }) {
+/** Go-to-location glass icon — up-right arrow that opens Google Maps */
+function LocationGoAction({ food }) {
   const url = getMapsUrl(food)
   if (!food.location) return null
 
-  const pill = (
-    <div
-      className="flex items-center h-12 px-3 rounded-full text-[14px] text-black"
+  const button = (
+    <button
+      className="flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
       style={glassStyle}
+      aria-label={`Open ${food.location} in Maps`}
     >
-      📍 {food.location}
-    </div>
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="black" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H8M17 7v9" />
+      </svg>
+    </button>
   )
 
   if (url) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-        {pill}
+        {button}
       </a>
     )
   }
-  return pill
+  return button
 }
 
-/** Mobile full-bleed image card — no rounded corners, with action overlays at bottom */
+/** Mobile full-bleed image card — no rounded corners, bookmark + go stacked at bottom-left */
 export function MobileFoodImage({ food, style }) {
   return (
     <div className="w-full h-full shrink-0 relative" style={style}>
@@ -133,10 +136,10 @@ export function MobileFoodImage({ food, style }) {
       ) : (
         <div className="w-full h-full bg-[#d9d9d9]" />
       )}
-      {/* Action overlays at bottom of photo — bookmark left, location right */}
-      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+      {/* Action overlays — stacked glass circles on the left, bookmark on top, go below */}
+      <div className="absolute bottom-4 left-4 flex flex-col gap-3">
         <BookmarkAction />
-        <LocationPill food={food} />
+        <LocationGoAction food={food} />
       </div>
     </div>
   )
