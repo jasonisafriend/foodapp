@@ -127,9 +127,54 @@ export default function useFoodPosts() {
     return newPost
   }, [])
 
+  const updateFood = useCallback(async (id, patch) => {
+    if (!isSupabaseConfigured()) {
+      setFoods(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)))
+      return { id, ...patch }
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const uid = session?.user?.id
+    if (!uid) throw new Error('Not signed in')
+
+    const { data, error } = await supabase
+      .from('food_posts')
+      .update(patch)
+      .eq('id', id)
+      .eq('user_id', uid)
+      .select()
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) throw new Error('Update failed — check permissions and try again')
+
+    setFoods(prev => prev.map(f => (f.id === id ? { ...f, ...data } : f)))
+    return data
+  }, [])
+
+  const deleteFood = useCallback(async (id) => {
+    if (!isSupabaseConfigured()) {
+      setFoods(prev => prev.filter(f => f.id !== id))
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const uid = session?.user?.id
+    if (!uid) throw new Error('Not signed in')
+
+    const { error } = await supabase
+      .from('food_posts')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', uid)
+
+    if (error) throw error
+    setFoods(prev => prev.filter(f => f.id !== id))
+  }, [])
+
   useEffect(() => {
     fetchFoods()
   }, [fetchFoods])
 
-  return { foods, loading, addFood, refetch: fetchFoods }
+  return { foods, loading, addFood, updateFood, deleteFood, refetch: fetchFoods }
 }

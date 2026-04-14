@@ -6,6 +6,7 @@ import AuthModal from './components/AuthModal'
 import MenuTray from './components/MenuTray'
 import TopBar from './components/TopBar'
 import ProfilePage from './components/ProfilePage'
+import PostDetail from './components/PostDetail'
 import useFoodPosts from './hooks/useFoodPosts'
 import useScrollColor from './hooks/useScrollColor'
 import { useAuth } from './lib/AuthContext'
@@ -16,7 +17,9 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('discover') // 'discover' | 'profile'
   const [showIntro, setShowIntro] = useState(true)
-  const { foods, loading, addFood } = useFoodPosts()
+  const [selectedPost, setSelectedPost] = useState(null) // { food, source: 'profile-recent' | 'profile-bookmarked' }
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0)
+  const { foods, loading, addFood, updateFood, deleteFood } = useFoodPosts()
   const { bgColor, onScrollProgress } = useScrollColor()
   const { user, signOut } = useAuth()
 
@@ -97,6 +100,28 @@ export default function App() {
         <ProfilePage
           onBack={() => setCurrentPage('discover')}
           onSignOut={handleSignOut}
+          onOpenPost={(food, source) => setSelectedPost({ food, source })}
+          refreshKey={profileRefreshKey}
+        />
+      )}
+
+      {/* Post detail overlay — opened from Profile only */}
+      {selectedPost && (
+        <PostDetail
+          food={selectedPost.food}
+          editable={selectedPost.source === 'profile-recent'}
+          deletable={selectedPost.source === 'profile-recent'}
+          onBack={() => setSelectedPost(null)}
+          onSave={async (patch) => {
+            const updated = await updateFood(selectedPost.food.id, patch)
+            setSelectedPost((prev) => prev ? { ...prev, food: { ...prev.food, ...updated } } : prev)
+            setProfileRefreshKey((k) => k + 1)
+          }}
+          onDelete={async () => {
+            await deleteFood(selectedPost.food.id)
+            setSelectedPost(null)
+            setProfileRefreshKey((k) => k + 1)
+          }}
         />
       )}
 

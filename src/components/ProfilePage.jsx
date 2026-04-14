@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../lib/AuthContext'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
-export default function ProfilePage({ onBack, onSignOut }) {
+export default function ProfilePage({ onBack, onSignOut, onOpenPost, refreshKey }) {
   const { user, profile, refreshProfile } = useAuth()
   const [activeTab, setActiveTab] = useState('recent') // 'recent' | 'bookmarked'
   const [isEditingUsername, setIsEditingUsername] = useState(false)
@@ -30,7 +30,7 @@ export default function ProfilePage({ onBack, onSignOut }) {
     try {
       const { data, error } = await supabase
         .from('food_posts')
-        .select('id, name, image_url, created_at')
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -45,7 +45,7 @@ export default function ProfilePage({ onBack, onSignOut }) {
 
   useEffect(() => {
     fetchMyPosts()
-  }, [fetchMyPosts])
+  }, [fetchMyPosts, refreshKey])
 
   // Auto-save username on blur or Enter
   const handleSaveUsername = async () => {
@@ -276,9 +276,10 @@ export default function ProfilePage({ onBack, onSignOut }) {
           ) : (
             <div className="grid grid-cols-3 gap-1.5">
               {myPosts.map((post) => (
-                <div
+                <button
                   key={post.id}
-                  className="relative rounded-xl overflow-hidden"
+                  onClick={() => onOpenPost?.(post, 'profile-recent')}
+                  className="relative rounded-xl overflow-hidden border-none p-0 cursor-pointer bg-transparent"
                   style={{ aspectRatio: '112 / 140' }}
                 >
                   {post.image_url ? (
@@ -300,7 +301,7 @@ export default function ProfilePage({ onBack, onSignOut }) {
                       {formatDate(post.created_at)}
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )
