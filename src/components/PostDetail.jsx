@@ -139,9 +139,10 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
   const mapsHref = getMapsUrl(food)
 
   return (
-    <div className="md:hidden fixed inset-0 z-40 bg-white flex flex-col overflow-hidden">
-      {/* Photo area — takes roughly the top half */}
-      <div className="relative shrink-0 w-full" style={{ aspectRatio: '4 / 5' }}>
+    <>
+    <div className="md:hidden fixed inset-0 z-40 bg-white overflow-y-auto overscroll-contain">
+      {/* Photo — scrolls with the page */}
+      <div className="relative w-full" style={{ aspectRatio: '4 / 5' }}>
         {food.image_url ? (
           <img
             src={food.image_url}
@@ -150,41 +151,6 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
           />
         ) : (
           <div className="w-full h-full bg-[#d9d9d9]" />
-        )}
-
-        {/* Back — glass pill top-left */}
-        <button
-          onClick={handleBack}
-          aria-label="Back"
-          className="absolute top-4 left-4 flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
-          style={glassStyle}
-        >
-          <ArrowLeft size={24} weight="regular" color="black" />
-        </button>
-
-        {/* Edit — glass pill top-right (only on Recent Eats, and only in view mode) */}
-        {editable && !isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            aria-label="Edit post"
-            className="absolute top-4 right-4 flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
-            style={glassStyle}
-          >
-            <Pencil size={22} weight="regular" color="black" />
-          </button>
-        )}
-
-        {/* Save — replaces Edit while editing */}
-        {editable && isEditing && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving || !name.trim()}
-            className="absolute top-4 right-4 h-12 px-5 rounded-full border-none cursor-pointer
-              bg-black text-white font-['Inter'] text-sm font-semibold
-              disabled:opacity-50"
-          >
-            {isSaving ? 'Saving…' : 'Save'}
-          </button>
         )}
 
         {/* Bookmarked-view actions (stacked glass circles) — only when !editable */}
@@ -225,8 +191,8 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
         )}
       </div>
 
-      {/* Info / edit area below photo — scrollable */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      {/* Info / edit area — flows below photo in the same scroll container */}
+      <div>
         {error && (
           <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600 m-0">{error}</p>
@@ -397,5 +363,44 @@ export default function PostDetail({ food, editable, deletable, onBack, onSave, 
         )}
       </div>
     </div>
+
+    {/* Fixed top action buttons — sit above the scrolling content */}
+    <div
+      className="md:hidden fixed left-0 right-0 z-50 flex items-start justify-between px-4 pointer-events-none"
+      style={{ top: 'max(16px, env(safe-area-inset-top, 16px))' }}
+    >
+      <button
+        onClick={handleBack}
+        aria-label="Back"
+        className="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
+        style={glassStyle}
+      >
+        <ArrowLeft size={24} weight="regular" color="black" />
+      </button>
+
+      {editable && !isEditing && (
+        <button
+          onClick={() => setIsEditing(true)}
+          aria-label="Edit post"
+          className="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border-none cursor-pointer p-0"
+          style={glassStyle}
+        >
+          <Pencil size={22} weight="regular" color="black" />
+        </button>
+      )}
+
+      {editable && isEditing && (
+        <button
+          onClick={handleSave}
+          disabled={isSaving || !name.trim()}
+          className="pointer-events-auto h-12 px-5 rounded-full border-none cursor-pointer
+            bg-black text-white font-['Inter'] text-sm font-semibold
+            disabled:opacity-50"
+        >
+          {isSaving ? 'Saving…' : 'Save'}
+        </button>
+      )}
+    </div>
+    </>
   )
 }
