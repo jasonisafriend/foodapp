@@ -173,8 +173,9 @@ export default function IntroScreen({ onDismiss }) {
         .foe-hand-swipe {
           animation: foe-hand-swipe-kf 3.2s ease-in-out infinite;
           /* Wait for the container to finish fading in, then start the loop.
-             `backwards` applies the 0% keyframe (off-screen right, opacity 0)
-             during the delay, preventing a flash at the default left:0. */
+             animation-fill-mode backwards applies the 0% keyframe (off-screen
+             right, opacity 0) during the delay, preventing a flash at the
+             default left:0. */
           animation-delay: 750ms;
           animation-fill-mode: backwards;
           will-change: left, opacity;
