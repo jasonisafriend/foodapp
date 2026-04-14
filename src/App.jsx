@@ -31,6 +31,8 @@ export default function App() {
   const { user, signOut } = useAuth()
 
   const handleShareClick = () => {
+    // Close any open detail overlay so the share modal sits on a clean stage
+    setSelectedPost(null)
     if (!isSupabaseConfigured() || user) {
       setIsModalOpen(true)
     } else {
@@ -38,8 +40,21 @@ export default function App() {
     }
   }
 
+  const handleProfile = () => {
+    setSelectedPost(null)
+    setCurrentPage('profile')
+  }
+
   const handleSignOut = async () => {
     await signOut()
+    setCurrentPage('discover')
+  }
+
+  // Tapping Discover in the tray should always land the user on Discover,
+  // dismissing any open overlay (PostDetail, Profile) and NOT re-showing the
+  // intro screen (which only gates itself on first mount).
+  const handleDiscover = () => {
+    setSelectedPost(null)
     setCurrentPage('discover')
   }
 
@@ -155,8 +170,8 @@ export default function App() {
         onAdd={handleShareClick}
         onAuth={() => setIsAuthOpen(true)}
         user={user}
-        onProfile={() => setCurrentPage('profile')}
-        onDiscover={() => setCurrentPage('discover')}
+        onProfile={handleProfile}
+        onDiscover={handleDiscover}
         currentPage={currentPage}
       />
 

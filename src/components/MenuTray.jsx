@@ -5,7 +5,7 @@
 export default function MenuTray({ onAdd, onAuth, user, onProfile, onDiscover, currentPage }) {
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white flex items-center justify-center gap-12 h-[72px] px-4 py-2"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white flex items-center justify-center gap-12 h-[72px] px-4 py-2"
       style={{
         borderTop: '1px solid rgba(31,31,31,0.08)',
         paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
