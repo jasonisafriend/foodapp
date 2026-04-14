@@ -20,7 +20,7 @@ const BG_IMAGES = [
   'https://www.figma.com/api/mcp/asset/cb32e979-2b3f-4afc-bcbc-a6508ef69d08',
 ]
 
-const FRAME_MS = 300 // 0.3s per photo
+const FRAME_MS = 500 // 0.5s per photo
 const STORAGE_KEY = 'foe_intro_seen_v1'
 
 export default function IntroScreen({ onDismiss }) {
@@ -118,29 +118,10 @@ export default function IntroScreen({ onDismiss }) {
       </div>
 
       {/* Contrast overlay */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
 
-      {/* Pause / play toggle — bottom right */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          setIsPaused((p) => !p)
-        }}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
-        aria-label={isPaused ? 'Resume background animation' : 'Pause background animation'}
-        className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-white/15 backdrop-blur-md
-          flex items-center justify-center border-none cursor-pointer text-white/90 p-0"
-      >
-        {isPaused
-          ? <Play size={20} weight="fill" />
-          : <Pause size={20} weight="fill" />}
-      </button>
-
-      {/* Foreground: logo, copy, hand icon */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
+      {/* Foreground: logo, copy, hand icon — pointer-events-none so taps pass through to button */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-8 pointer-events-none">
         {/* Logo — invert to white on dark bg */}
         <img
           src="/logo2.svg"
@@ -162,6 +143,25 @@ export default function IntroScreen({ onDismiss }) {
         </div>
       </div>
 
+      {/* Pause / play toggle — bottom right, rendered last so it sits above all other layers */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          setIsPaused((p) => !p)
+        }}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        aria-label={isPaused ? 'Resume background animation' : 'Pause background animation'}
+        className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-white/15 backdrop-blur-md
+          flex items-center justify-center border-none cursor-pointer text-white/90 p-0 z-10"
+      >
+        {isPaused
+          ? <Play size={20} weight="fill" />
+          : <Pause size={20} weight="fill" />}
+      </button>
+
       <style>{`
         @keyframes foe-hand-swipe-kf {
           0%   { left: calc(100% - 56px); opacity: 0; }
@@ -171,7 +171,7 @@ export default function IntroScreen({ onDismiss }) {
           100% { left: 8px; opacity: 0; }
         }
         .foe-hand-swipe {
-          animation: foe-hand-swipe-kf 2.4s ease-in-out infinite;
+          animation: foe-hand-swipe-kf 3.2s ease-in-out infinite;
           will-change: left, opacity;
         }
       `}</style>
